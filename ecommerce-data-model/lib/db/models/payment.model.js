@@ -60,6 +60,7 @@ class Payment extends Model{
                 updatedAt: false
             }
         )
+        return Payment;
     }
 
     static associate(models){

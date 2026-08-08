@@ -35,6 +35,7 @@ class PasswordResetToken extends Model{
             updatedAt: false
             }
         );
+        return PasswordResetToken;
     }
 
     static associate(models){

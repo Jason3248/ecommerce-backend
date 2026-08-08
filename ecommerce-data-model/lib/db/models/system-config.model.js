@@ -26,7 +26,8 @@ class SystemConfig extends Model{
                 underscored: true,
                 timestamps: true
             }
-        )
+        );
+        return SystemConfig;
     }
 
     static associate(models){
