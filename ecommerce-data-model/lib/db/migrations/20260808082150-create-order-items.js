@@ -30,7 +30,7 @@ module.exports = {
         onDelete: 'RESTRICT'
       },
       product_name: {
-        type: Sequelize.STRING(200),
+        type: Sequelize.STRING(100),
         allowNull: false
       },
       product_sku: {
@@ -42,7 +42,7 @@ module.exports = {
         allowNull: false
       },
       unit_price: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.DECIMAL(10, 2),
         allowNull: false
       },
       line_total: {

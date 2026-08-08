@@ -31,11 +31,6 @@ module.exports = {
         defaultValue: 0,
         allowNull: false,
       },
-      status: {
-        type: Sequelize.ENUM('ACTIVE', 'INACTIVE'),
-        defaultValue: 'ACTIVE',
-        allowNull: false
-      },
       image_url: {
         type: Sequelize.STRING(500),
         allowNull: true
@@ -78,6 +73,5 @@ module.exports = {
    
   async down (queryInterface, Sequelize) {
     await queryInterface.dropTable('products');
-    await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_products_status";');
   }
 };

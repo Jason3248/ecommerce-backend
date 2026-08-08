@@ -37,7 +37,7 @@ module.exports = {
       },
       is_email_verified: {
         type: Sequelize.BOOLEAN,
-        defaultValue: true,
+        defaultValue: false,
         allowNull: false
       },
       is_blocked: {
