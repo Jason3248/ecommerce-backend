@@ -66,14 +66,6 @@ module.exports = {
       }
     })
 
-    await queryInterface.sequelize.query(
-      'ALTER TABLE PRODUCTS ADD CONSTRAINT products_price_positive CHECK (price > 0);'
-    )
-
-    await queryInterface.sequelize.query(
-      'ALTER TABLE PRODUCTS ADD CONSTRAINT products_stock_non_negative CHECK (stock_quantity >= 0);'
-    )
-
     await queryInterface.addIndex('products', ['category_id'], {
       name: 'products_category_id_idx'
     })

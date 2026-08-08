@@ -6,7 +6,7 @@ module.exports = {
     await queryInterface.createTable('users', {
       id: {
         type: Sequelize.UUID,
-        defaultValue: UUIDV4,
+        defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
       first_name: {
@@ -37,7 +37,7 @@ module.exports = {
       },
       is_email_verified: {
         type: Sequelize.BOOLEAN,
-        defaultValue: false,
+        defaultValue: true,
         allowNull: false
       },
       is_blocked: {
@@ -60,6 +60,12 @@ module.exports = {
         allowNull: true
       }
     });
+
+    await queryInterface.addIndex('users', ['is_blocked'], {
+      name: 'users_is_blocked_idx'
+    });
+
+
   },
   async down(queryInterface, Sequelize)
   {
