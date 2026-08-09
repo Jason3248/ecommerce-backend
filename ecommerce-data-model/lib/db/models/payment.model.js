@@ -1,12 +1,14 @@
-const {DataTypes, Model} = require("sequelize");
+const { DataTypes, Model } = require("sequelize");
 
-class Payment extends Model{
-    static initModel(sequelize){
+class Payment extends Model
+{
+    static initModel(sequelize)
+    {
         Payment.init(
             {
                 id: {
                     type: DataTypes.UUID,
-                    defaultValue: UUIDV4,
+                    defaultValue: DataTypes.UUIDV4,
                     primaryKey: true
                 },
                 orderId: {
@@ -35,14 +37,16 @@ class Payment extends Model{
                     validate: {
                         isIn: [['PENDING', 'SUCCESS', 'FAILED']]
                     },
-                    set(value){
+                    set(value)
+                    {
                         this.setDataValue("status", value.trim().toUpperCase());
                     }
                 },
                 method: {
                     type: DataTypes.STRING(50),
                     allowNull: false,
-                    set(value){
+                    set(value)
+                    {
                         this.setDataValue("method", value.trim());
                     }
                 },
@@ -63,7 +67,8 @@ class Payment extends Model{
         return Payment;
     }
 
-    static associate(models){
+    static associate(models)
+    {
         Payment.belongsTo(models.User, {
             foreignKey: 'userId',
             as: 'user'

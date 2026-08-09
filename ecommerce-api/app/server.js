@@ -1,4 +1,4 @@
-const { sequelize } = require("ecommerce-data-model-simple");
+const { sequelize } = require("ecommerce-data-model");
 const app = require("./app");
 const port = Number(process.env.PORT || 3000);
 

@@ -1,12 +1,14 @@
-const {DataTypes, Model} = require("sequelize");
+const { DataTypes, Model } = require("sequelize");
 
-class SystemConfig extends Model{
-    static initModel(sequelize){
+class SystemConfig extends Model
+{
+    static initModel(sequelize)
+    {
         SystemConfig.init(
             {
                 id: {
                     type: DataTypes.UUID,
-                    defaultValue: UUIDV4,
+                    defaultValue: DataTypes.UUIDV4,
                     primaryKey: true
                 },
                 key: {
@@ -30,8 +32,9 @@ class SystemConfig extends Model{
         return SystemConfig;
     }
 
-    static associate(models){
-        
+    static associate(models)
+    {
+
     }
 }
 
