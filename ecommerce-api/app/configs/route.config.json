@@ -1,0 +1,358 @@
+[
+    {
+        "method": "POST",
+        "path": "/api/auth/register",
+        "controller": "auth",
+        "action": "register",
+        "middlewares": []
+    },
+    {
+        "method": "POST",
+        "path": "/api/auth/login",
+        "controller": "auth",
+        "action": "login",
+        "middlewares": []
+    },
+    {
+        "method": "POST",
+        "path": "/api/auth/logout",
+        "controller": "auth",
+        "action": "logout",
+        "middlewares": []
+    },
+    {
+        "method": "POST",
+        "path": "/api/auth/forgot-password",
+        "controller": "auth",
+        "action": "forgotPassword",
+        "middlewares": []
+    },
+    {
+        "method": "POST",
+        "path": "/api/auth/reset-password",
+        "controller": "auth",
+        "action": "resetPassword",
+        "middlewares": []
+    },
+    {
+        "method": "GET",
+        "path": "api/users/me",
+        "controller": "user",
+        "action": "getProfile",
+        "middlewares": []
+    },
+    {
+        "method": "PATCH",
+        "path": "api/users/me",
+        "controller": "user",
+        "action": "updateProfile",
+        "middlewares": []
+    },
+    {
+        "method": "GET",
+        "path": "api/users/me/password",
+        "controller": "user",
+        "action": "changePassword",
+        "middlewares": []
+    },
+    {
+        "method": "GET",
+        "path": "/api/categories",
+        "controller": "category",
+        "action": "listCategories",
+        "middlewares": []
+    },
+    {
+        "method": "GET",
+        "path": "/api/categories/:categoryId",
+        "controller": "category",
+        "action": "getById",
+        "middlewares": []
+    },
+    {
+        "method": "GET",
+        "path": "/api/products",
+        "controller": "product",
+        "action": "listProducts",
+        "middlewares": []
+    },
+    {
+        "method": "GET",
+        "path": "/api/products/:productId",
+        "controller": "product",
+        "action": "getById",
+        "middlewares": []
+    },
+    {
+        "method": "GET",
+        "path": "/api/cart",
+        "controller": "cart",
+        "action": "getCart",
+        "middlewares": []
+    },
+    {
+        "method": "POST",
+        "path": "/api/cart/items",
+        "controller": "cart",
+        "action": "addItem",
+        "middlewares": []
+    },
+    {
+        "method": "PATCH",
+        "path": "/api/cart/items/:itemId",
+        "controller": "cart",
+        "action": "updateItemQuantity",
+        "middlewares": []
+    },
+    {
+        "method": "DELETE",
+        "path": "/api/cart/items/:itemId",
+        "controller": "cart",
+        "action": "removeItem",
+        "middlewares": []
+    },
+    {
+        "method": "GET",
+        "path": "/api/orders",
+        "controller": "order",
+        "action": "listOrders",
+        "middlewares": []
+    },
+    {
+        "method": "GET",
+        "path": "/api/orders/:orderId",
+        "controller": "order",
+        "action": "getById",
+        "middlewares": []
+    },
+    {
+        "method": "POST",
+        "path": "/api/orders",
+        "controller": "order",
+        "action": "createOrder",
+        "middlewares": []
+    },
+    {
+        "method": "PATCH",
+        "path": "/api/orders/:orderId/cancel",
+        "controller": "order",
+        "action": "cancelOrder",
+        "middlewares": []
+    },
+    {
+        "method": "GET",
+        "path": "/api/payments",
+        "controller": "payment",
+        "action": "listPayments",
+        "middlewares": []
+    },
+    {
+        "method": "GET",
+        "path": "/api/payments/:paymentId",
+        "controller": "payment",
+        "action": "getById",
+        "middlewares": []
+    },
+    {
+        "method": "POST",
+        "path": "/api/orders/:orderId/payments",
+        "controller": "payment",
+        "action": "createPayment"
+    },
+    {
+        "method": "GET",
+        "path": "/api/reports/order-history/pdf",
+        "controller": "report",
+        "action": "orderHistoryPdf",
+        "middlewares": []
+    },
+    {
+        "method": "GET",
+        "path": "/api/reports/order-history/csv",
+        "controller": "report",
+        "action": "orderHistoryCsv",
+        "middlewares": []
+    },
+    {
+        "method": "GET",
+        "path": "/api/admin/users",
+        "controller": "admin",
+        "action": "listUsers",
+        "middlewares": []
+    },
+    {
+        "method": "GET",
+        "path": "/api/admin/users/:userId",
+        "controller": "admin",
+        "action": "getUserById",
+        "middlewares": []
+    },
+    {
+        "method": "PATCH",
+        "path": "/api/admin/users/:userId/block",
+        "controller": "admin",
+        "action": "blockUser",
+        "middlewares": []
+    },
+    {
+        "method": "PATCH",
+        "path": "/api/admin/users/:userId/unblock",
+        "controller": "admin",
+        "action": "unblockUser",
+        "middlewares": []
+    },
+    {
+        "method": "DELETE",
+        "path": "/api/admin/users/:userId",
+        "controller": "admin",
+        "action": "deleteUser",
+        "middlewares": []
+    },
+    {
+        "method": "PATCH",
+        "path": "/api/admin/users/:userId/restore",
+        "controller": "admin",
+        "action": "restoreUser",
+        "middlewares": []
+    },
+    {
+        "method": "GET",
+        "path": "/api/admin/config",
+        "controller": "admin",
+        "action": "listConfig",
+        "middlewares": []
+    },
+    {
+        "method": "PATCH",
+        "path": "/api/admin/config/:key",
+        "controller": "admin",
+        "action": "updateConfig",
+        "middlewares": []
+    },
+    {
+        "method": "GET",
+        "path": "/api/admin/category",
+        "controller": "category",
+        "action": "listCategories",
+        "middlewares": []
+    },
+    {
+        "method": "GET",
+        "path": "/api/admin/category/:categoryId",
+        "controller": "category",
+        "action": "listById",
+        "middlewares": []
+    },
+    {
+        "method": "POST",
+        "path": "/api/admin/categories",
+        "controller": "createCategory",
+        "action": "list",
+        "middlewares": []
+    },
+    {
+        "method": "PATCH",
+        "path": "/api/admin/category/:categoryId",
+        "controller": "category",
+        "action": "updateCategory",
+        "middlewares": []
+    },
+    {
+        "method": "DELETE",
+        "path": "/api/admin/category/:categoryId",
+        "controller": "category",
+        "action": "deleteCategory",
+        "middlewares": []
+    },
+    {
+        "method": "PATCH",
+        "path": "/api/admin/category/:categoryId",
+        "controller": "category",
+        "action": "restoreCategory",
+        "middlewares": []
+    },
+    {
+        "method": "GET",
+        "path": "/api/admin/products",
+        "controller": "product",
+        "action": "listProducts",
+        "middlewares": []
+    },
+    {
+        "method": "GET",
+        "path": "/api/admin/products/:productId",
+        "controller": "product",
+        "action": "getById",
+        "middlewares": []
+    },
+    {
+        "method": "POST",
+        "path": "/api/admin/products",
+        "controller": "product",
+        "action": "createProduct",
+        "middlewares": []
+    },
+    {
+        "method": "PATCH",
+        "path": "/api/admin/products/:productId",
+        "controller": "product",
+        "action": "updateProduct",
+        "middlewares": []
+    },
+    {
+        "method": "PATCH",
+        "path": "/api/admin/products/:productId/inventory",
+        "controller": "product",
+        "action": "updateInventory",
+        "middlewares": []
+    },
+    {
+        "method": "DELETE",
+        "path": "/api/admin/products/:productId",
+        "controller": "product",
+        "action": "deleteProduct",
+        "middlewares": []
+    },
+    {
+        "method": "PATCH",
+        "path": "/api/admin/products/:productId/restore",
+        "controller": "product",
+        "action": "restoreProduct",
+        "middlewares": []
+    },
+    {
+        "method": "GET",
+        "path": "/api/admin/orders",
+        "controller": "order",
+        "action": "listOrders",
+        "middlewares": []
+    },
+    {
+        "method": "GET",
+        "path": "/api/admin/orders/:orderId",
+        "controller": "order",
+        "action": "getById",
+        "middlewares": []
+    },
+    {
+        "method": "PATCH",
+        "path": "/api/admin/orders/:orderId/status",
+        "controller": "order",
+        "action": "updateOrderStatus",
+        "middlewares": []
+    },
+    {
+        "method": "GET",
+        "path": "/api/admin/payments",
+        "controller": "payment",
+        "action": "listPayments",
+        "middlewares": []
+    },
+    {
+        "method": "GET",
+        "path": "/api/admin/payments/:paymentId",
+        "controller": "payment",
+        "action": "getById",
+        "middlewares": []
+    }
+]
