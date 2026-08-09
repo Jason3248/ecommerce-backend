@@ -1,8 +1,10 @@
-const {DataTypes, Model} = require("sequelize");
+const { DataTypes, Model } = require("sequelize");
 
 
-class User extends Model{
-    static initModel(sequelize){
+class User extends Model
+{
+    static initModel(sequelize)
+    {
         User.init(
             {
                 id: {
@@ -16,7 +18,8 @@ class User extends Model{
                     validate: {
                         len: [2, 50]
                     },
-                    set(value){
+                    set(value)
+                    {
                         this.setDataValue("firstName", value.trim());
                     }
                 },
@@ -26,17 +29,9 @@ class User extends Model{
                     validate: {
                         len: [2, 50]
                     },
-                    set(value){
+                    set(value)
+                    {
                         this.setDataValue("lastName", value.trim());
-                    }
-                },
-                age: {
-                    type: DataTypes.INTEGER,
-                    allowNull: true,
-                    validate: {
-                        isInt: true,
-                        min: 18,
-                        max: 100
                     }
                 },
                 email: {
@@ -46,7 +41,8 @@ class User extends Model{
                     validate: {
                         isEmail: true
                     },
-                    set(value){
+                    set(value)
+                    {
                         this.setDataValue("email", value.trim().toLowerCase());
                     }
                 },
@@ -61,13 +57,14 @@ class User extends Model{
                     validate: {
                         isIn: [['CUSTOMER', 'ADMIN']]
                     },
-                    set(value){
+                    set(value)
+                    {
                         this.setDataValue("role", value.trim().toUpperCase());
                     }
                 },
                 isEmailVerified: {
                     type: DataTypes.BOOLEAN,
-                    defaultValue: true,
+                    defaultValue: false,
                     allowNull: false
                 },
                 isBlocked: {
@@ -88,7 +85,8 @@ class User extends Model{
         return User;
     }
 
-    static associate(models){
+    static associate(models)
+    {
         User.hasOne(models.Cart, {
             foreignKey: 'userId',
             as: 'cart'

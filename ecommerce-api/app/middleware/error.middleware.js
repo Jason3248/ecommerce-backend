@@ -1,14 +1,5 @@
 const AppError = require("../lib/errors/AppError.js");
 
-const notFoundHandler = (req, res, next) =>
-{
-    res.status(404).json({
-        success: false,
-        code: 'PATH_NOT_FOUND',
-        message: `No route matches ${req.method} ${req.originalUrl}`,
-        timestamp: new Date().toISOString()
-    });
-};
 
 
 const errorHandler = (err, req, res, next) =>
@@ -31,4 +22,4 @@ const errorHandler = (err, req, res, next) =>
 }
 
 
-
+module.exports = errorHandler;

@@ -58,3 +58,11 @@ class PaymentError extends AppError
     }
 }
 
+module.exports = {
+    ValidationError,
+    NotFoundError,
+    UnauthorizedError,
+    ForbiddenError,
+    BusinessRuleError,
+    PaymentError
+}

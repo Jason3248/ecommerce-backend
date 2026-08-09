@@ -1,5 +1,5 @@
 {
-  "name": "@ecommerce/ecommerce-data-model",
+  "name": "ecommerce-data-model",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
