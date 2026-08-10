@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const { UnauthorizedError, ForbiddenError } = require("../lib/errors");
 const User = require("ecommerce-data-model");
+require('dotenv').config(__dirname, '../../../.env');
 
 const authenticate = async (req, res, next) =>
 {

@@ -9,4 +9,4 @@ require("dotenv").config({ path: path.resolve(__dirname, "../../.env") });
 //     environment: process.env.NODE_ENV ?? "development"
 // });
 
-require("../app/server").start();
+require("../app/server.js").start();

@@ -115,14 +115,14 @@
         "method": "GET",
         "path": "/api/orders",
         "controller": "order",
-        "action": "listOrders",
+        "action": "listMyOrders",
         "middlewares": []
     },
     {
         "method": "GET",
         "path": "/api/orders/:orderId",
         "controller": "order",
-        "action": "getById",
+        "action": "getMyOrdersById",
         "middlewares": []
     },
     {
@@ -136,7 +136,7 @@
         "method": "PATCH",
         "path": "/api/orders/:orderId/cancel",
         "controller": "order",
-        "action": "cancelOrder",
+        "action": "cancelMyOrder",
         "middlewares": []
     },
     {
@@ -266,7 +266,7 @@
     },
     {
         "method": "PATCH",
-        "path": "/api/admin/category/:categoryId",
+        "path": "/api/admin/category/:categoryId/restore",
         "controller": "category",
         "action": "restoreCategory",
         "middlewares": []

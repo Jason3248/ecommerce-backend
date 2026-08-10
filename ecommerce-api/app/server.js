@@ -1,6 +1,7 @@
 const { sequelize } = require("ecommerce-data-model");
 const app = require("./app");
 const port = Number(process.env.PORT || 3000);
+const logger = require("./configs/logger.js");
 
 const start = async () =>
 {
@@ -8,15 +9,14 @@ const start = async () =>
     {
         await sequelize.authenticate();
 
-        // logger.info("Database connection established");
+        logger.info("Database connection established");
 
         const server = app.listen(port, () =>
         {
-            // logger.info("HTTP server started", {
-            //     port,
-            //     environment: process.env.NODE_ENV ?? "development"
-            // });
-            console.log(`Server running on port ${port}`)
+            logger.info("HTTP server started", {
+                port,
+                environment: process.env.NODE_ENV ?? "development"
+            });
         });
 
         let isShuttingDown = false;

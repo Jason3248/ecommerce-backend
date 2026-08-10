@@ -1,0 +1,58 @@
+[
+    {
+        "method": "POST",
+        "path": "/api/auth/register",
+        "controller": "auth",
+        "action": "register",
+        "middlewares": []
+    },
+    {
+        "method": "POST",
+        "path": "/api/auth/login",
+        "controller": "auth",
+        "action": "login",
+        "middlewares": []
+    },
+    {
+        "method": "POST",
+        "path": "/api/auth/logout",
+        "controller": "auth",
+        "action": "logout",
+        "middlewares": []
+    },
+    {
+        "method": "POST",
+        "path": "/api/auth/forgot-password",
+        "controller": "auth",
+        "action": "forgotPassword",
+        "middlewares": []
+    },
+    {
+        "method": "POST",
+        "path": "/api/auth/reset-password",
+        "controller": "auth",
+        "action": "resetPassword",
+        "middlewares": []
+    },
+    {
+        "method": "GET",
+        "path": "api/users/me",
+        "controller": "user",
+        "action": "getProfile",
+        "middlewares": []
+    },
+    {
+        "method": "PATCH",
+        "path": "api/users/me",
+        "controller": "user",
+        "action": "updateProfile",
+        "middlewares": []
+    },
+    {
+        "method": "GET",
+        "path": "api/users/me/password",
+        "controller": "user",
+        "action": "changePassword",
+        "middlewares": []
+    }
+]

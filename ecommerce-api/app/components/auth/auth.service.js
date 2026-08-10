@@ -95,9 +95,8 @@ class AuthService
         //     subject: 'Reset Your Password',
         //     text: `Use this link to reset your password (expires in ${RESET_TOKEN_EXPIRY_MINUTES} minutes): ${resetUrl}`
         // });
-        return token;
+        return rawToken;
     }
-
 
     async resetPassword({ token, password })
     {

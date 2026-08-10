@@ -64,5 +64,6 @@ module.exports = {
     UnauthorizedError,
     ForbiddenError,
     BusinessRuleError,
-    PaymentError
+    PaymentError,
+    ConflictError
 }
