@@ -42,9 +42,13 @@ class ProductController
         });
     }
 
-    async updateInventoru(req, res)
+    async updateInventory(req, res)
     {
         const result = await this.service.updateInventory(req.params.productId, req.body);
+        return res.status(200).json({
+            success: true,
+            data: result
+        });
     }
 
     async deleteProduct(req, res)
@@ -65,3 +69,5 @@ class ProductController
         });
     }
 }
+
+module.exports = ProductController;

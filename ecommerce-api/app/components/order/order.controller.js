@@ -1,3 +1,4 @@
+const { Order } = require("ecommerce-data-model");
 const OrderService = require("./order.service");
 
 class OrderController
@@ -71,3 +72,4 @@ class OrderController
 }
 
 
+module.exports = OrderController;

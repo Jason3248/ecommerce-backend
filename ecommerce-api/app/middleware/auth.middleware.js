@@ -1,10 +1,12 @@
 const jwt = require("jsonwebtoken");
 const { UnauthorizedError, ForbiddenError } = require("../lib/errors");
-const User = require("ecommerce-data-model");
+const { User } = require("ecommerce-data-model");
 require('dotenv').config(__dirname, '../../../.env');
+const logger = require("../configs/logger.js")
 
 const authenticate = async (req, res, next) =>
 {
+    logger.info("request received");
     const header = req.headers.authorization;
     if (!header || !header.startsWith('Bearer '))
     {
@@ -36,10 +38,9 @@ const authenticate = async (req, res, next) =>
     next();
 }
 
-
-
 const requireAdmin = (req, res, next) =>
 {
+    logger.info(req.user);
     if (!req.user)
     {
         throw new UnauthorizedError('Authentication required');

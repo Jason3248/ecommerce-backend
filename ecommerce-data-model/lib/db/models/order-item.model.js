@@ -1,7 +1,9 @@
-const {DataTypes, Model} = require("sequelize");
+const { DataTypes, Model } = require("sequelize");
 
-class OrderItem extends Model{
-    static initModel(sequelize){
+class OrderItem extends Model
+{
+    static initModel(sequelize)
+    {
         OrderItem.init(
             {
                 id: {
@@ -27,15 +29,17 @@ class OrderItem extends Model{
                 productName: {
                     type: DataTypes.STRING(100),
                     allowNull: false,
-                    set(value){
+                    set(value)
+                    {
                         this.setDataValue("productName", value.trim())
                     }
                 },
                 productSku: {
                     type: DataTypes.STRING(50),
                     allowNull: false,
-                    unique: true,
-                    set(value){
+                    unique: false,
+                    set(value)
+                    {
                         this.setDataValue("productSku", value.trim())
                     }
                 },
@@ -65,7 +69,8 @@ class OrderItem extends Model{
         return OrderItem;
     }
 
-    static associate(models){
+    static associate(models)
+    {
         OrderItem.belongsTo(models.Order, {
             foreignKey: 'orderId',
             as: 'order'

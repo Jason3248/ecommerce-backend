@@ -1,6 +1,6 @@
-const { Product, Sequelize } = require("ecommerce-data-model");
+const { Product, Category } = require("ecommerce-data-model");
 const { NotFoundError, ConflictError } = require("../../lib/errors");
-const { Op } = require(Sequelize);
+const { Op } = require("sequelize");
 
 
 const DEFAULT_PAGE_SIZE = 20
@@ -21,8 +21,8 @@ class ProductService
 {
     #pagination(query)
     {
-        const page = parseInt(query.page);
-        const pageSize = parseInt(query.pageSize);
+        let page = parseInt(query.page);
+        let pageSize = parseInt(query.pageSize);
         if (!Number.isInteger(page) || page < 1) page = 1;
         if (!Number.isInteger(pageSize) || pageSize < 1) pageSize = DEFAULT_PAGE_SIZE
         if (pageSize > MAX_PAGE_SIZE) pageSize = MAX_PAGE_SIZE;
@@ -37,7 +37,7 @@ class ProductService
         }
         if (query.sku)
         {
-            where.sku = { [Op.eq]: query.sku }
+            where.sku = { [Op.ilike]: `%${query.sku}%` }
         }
         if (query.categoryId)
         {
@@ -59,10 +59,10 @@ class ProductService
 
     async listProducts(query)
     {
-        const { page, pageSize, offset, limit } = #pagination(query);
-        const order = [SORTABLE_FIELDS[query.sortBy]] || [DEFAULT_SORT];
+        const { page, pageSize, offset, limit } = this.#pagination(query);
+        const order = [SORTABLE_FIELDS[query.sortBy] || DEFAULT_SORT];
         const where = this.#buildWhere(query);
-        const { rows, count } = await Product.findandCountAll({
+        const { rows, count } = await Product.findAndCountAll({
             where,
             limit,
             offset,
@@ -82,7 +82,7 @@ class ProductService
     async getById(productId)
     {
         const product = await Product.findByPk(productId);
-        if (product)
+        if (!product)
         {
             throw new NotFoundError('Product not found');
         }
@@ -108,7 +108,7 @@ class ProductService
         return createdProduct;
     }
 
-    async updateProduct(productId, { name, description, price, categoryId })
+    async updateProduct(productId, { name, description, price, categoryId } = {})
     {
         if (name === undefined &&
             description === undefined &&
@@ -133,7 +133,7 @@ class ProductService
     }
 
 
-    async updateInventory(productId, { stockQuantity })
+    async updateInventory(productId, { stockQuantity } = {})
     {
         const product = await Product.findByPk(productId);
         if (!product)

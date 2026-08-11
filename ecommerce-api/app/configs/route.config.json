@@ -18,7 +18,9 @@
         "path": "/api/auth/logout",
         "controller": "auth",
         "action": "logout",
-        "middlewares": []
+        "middlewares": [
+            "authenticate"
+        ]
     },
     {
         "method": "POST",
@@ -36,21 +38,23 @@
     },
     {
         "method": "GET",
-        "path": "api/users/me",
+        "path": "/api/users/me",
         "controller": "user",
         "action": "getProfile",
-        "middlewares": []
+        "middlewares": [
+            "authenticate"
+        ]
     },
     {
         "method": "PATCH",
-        "path": "api/users/me",
+        "path": "/api/users/me",
         "controller": "user",
         "action": "updateProfile",
         "middlewares": []
     },
     {
         "method": "GET",
-        "path": "api/users/me/password",
+        "path": "/api/users/me/password",
         "controller": "user",
         "action": "changePassword",
         "middlewares": []
@@ -141,23 +145,22 @@
     },
     {
         "method": "GET",
-        "path": "/api/payments",
-        "controller": "payment",
-        "action": "listPayments",
-        "middlewares": []
-    },
-    {
-        "method": "GET",
         "path": "/api/payments/:paymentId",
         "controller": "payment",
-        "action": "getById",
+        "action": "getMyPaymentById",
         "middlewares": []
     },
     {
         "method": "POST",
         "path": "/api/orders/:orderId/payments",
         "controller": "payment",
-        "action": "createPayment"
+        "action": "initiatePayment"
+    },
+    {
+        "method": "POST",
+        "path": "/api/orders/:orderId/payments/webhook",
+        "controller": "payment",
+        "action": "handleWebhook"
     },
     {
         "method": "GET",

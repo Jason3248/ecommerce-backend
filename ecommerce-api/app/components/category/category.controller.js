@@ -7,9 +7,9 @@ class CategoryController
         this.service = new CategoryService();
     }
 
-    async getCategories(req, res)
+    async listCategories(req, res)
     {
-        const result = await this.service.getCategories();
+        const result = await this.service.listCategories();
         return res.status(200).json({
             success: true,
             data: result
@@ -63,3 +63,5 @@ class CategoryController
 
 
 }
+
+module.exports = CategoryController;

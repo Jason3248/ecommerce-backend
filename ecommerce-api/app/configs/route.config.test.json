@@ -18,7 +18,9 @@
         "path": "/api/auth/logout",
         "controller": "auth",
         "action": "logout",
-        "middlewares": []
+        "middlewares": [
+            "authenticate"
+        ]
     },
     {
         "method": "POST",
@@ -36,23 +38,195 @@
     },
     {
         "method": "GET",
-        "path": "api/users/me",
+        "path": "/api/users/me",
         "controller": "user",
         "action": "getProfile",
-        "middlewares": []
+        "middlewares": [
+            "authenticate"
+        ]
     },
     {
         "method": "PATCH",
-        "path": "api/users/me",
+        "path": "/api/users/me",
         "controller": "user",
         "action": "updateProfile",
-        "middlewares": []
+        "middlewares": [
+            "authenticate"
+        ]
+    },
+    {
+        "method": "PATCH",
+        "path": "/api/users/me/password",
+        "controller": "user",
+        "action": "changePassword",
+        "middlewares": [
+            "authenticate"
+        ]
     },
     {
         "method": "GET",
-        "path": "api/users/me/password",
-        "controller": "user",
-        "action": "changePassword",
-        "middlewares": []
+        "path": "/api/categories",
+        "controller": "category",
+        "action": "listCategories",
+        "middlewares": [
+            "authenticate"
+        ]
+    },
+    {
+        "method": "GET",
+        "path": "/api/categories/:categoryId",
+        "controller": "category",
+        "action": "getById",
+        "middlewares": [
+            "authenticate"
+        ]
+    },
+    {
+        "method": "GET",
+        "path": "/api/admin/categories",
+        "controller": "category",
+        "action": "listCategories",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin"
+        ]
+    },
+    {
+        "method": "GET",
+        "path": "/api/admin/categories/:categoryId",
+        "controller": "category",
+        "action": "getById",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin"
+        ]
+    },
+    {
+        "method": "POST",
+        "path": "/api/admin/categories",
+        "controller": "category",
+        "action": "createCategory",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin"
+        ]
+    },
+    {
+        "method": "PATCH",
+        "path": "/api/admin/categories/:categoryId",
+        "controller": "category",
+        "action": "updateCategory",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin"
+        ]
+    },
+    {
+        "method": "DELETE",
+        "path": "/api/admin/categories/:categoryId",
+        "controller": "category",
+        "action": "deleteCategory",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin"
+        ]
+    },
+    {
+        "method": "PATCH",
+        "path": "/api/admin/categories/:categoryId/restore",
+        "controller": "category",
+        "action": "restoreCategory",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin"
+        ]
+    },
+    {
+        "method": "GET",
+        "path": "/api/products",
+        "controller": "product",
+        "action": "listProducts",
+        "middlewares": [
+            "authenticate"
+        ]
+    },
+    {
+        "method": "GET",
+        "path": "/api/products/:productId",
+        "controller": "product",
+        "action": "getById",
+        "middlewares": [
+            "authenticate"
+        ]
+    },
+    {
+        "method": "GET",
+        "path": "/api/admin/products",
+        "controller": "product",
+        "action": "listProducts",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin"
+        ]
+    },
+    {
+        "method": "GET",
+        "path": "/api/admin/products/:productId",
+        "controller": "product",
+        "action": "getById",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin"
+        ]
+    },
+    {
+        "method": "POST",
+        "path": "/api/admin/products",
+        "controller": "product",
+        "action": "createProduct",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin"
+        ]
+    },
+    {
+        "method": "PATCH",
+        "path": "/api/admin/products/:productId",
+        "controller": "product",
+        "action": "updateProduct",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin"
+        ]
+    },
+    {
+        "method": "PATCH",
+        "path": "/api/admin/products/:productId/inventory",
+        "controller": "product",
+        "action": "updateInventory",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin"
+        ]
+    },
+    {
+        "method": "DELETE",
+        "path": "/api/admin/products/:productId",
+        "controller": "product",
+        "action": "deleteProduct",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin"
+        ]
+    },
+    {
+        "method": "PATCH",
+        "path": "/api/admin/products/:productId/restore",
+        "controller": "product",
+        "action": "restoreProduct",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin"
+        ]
     }
 ]

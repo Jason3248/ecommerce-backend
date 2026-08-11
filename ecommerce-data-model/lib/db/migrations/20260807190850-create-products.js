@@ -2,7 +2,8 @@
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  async up (queryInterface, Sequelize) {
+  async up(queryInterface, Sequelize)
+  {
     await queryInterface.createTable('products', {
       id: {
         type: Sequelize.UUID,
@@ -65,13 +66,11 @@ module.exports = {
       name: 'products_category_id_idx'
     })
 
-    await queryInterface.addIndex('products', ['status'], {
-      name: 'products_status_idx'
-    })
   },
 
-   
-  async down (queryInterface, Sequelize) {
+
+  async down(queryInterface, Sequelize)
+  {
     await queryInterface.dropTable('products');
   }
 };

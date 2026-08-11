@@ -1,4 +1,187 @@
+const { Payment, Order, sequelize } = require("ecommerce-data-model");
+const { NotFoundError, BusinessRuleError, InvalidOrderStateError } = require("../../lib/errors");
+const { createPaymentRequest, verifyWebhookSignature } = require("../../lib/payment-gateway/paymentGateway.js");
+
+const PAYABLE_STATES = ['PAYMENT_PENDING', 'PAYMENT_FAILED'];
+const DEFAULT_PAGE_SIZE = 20;
+const MAX_PAGE_SIZE = 30;
+
+
 class PaymentService
 {
 
+    #parsePagination(query)
+    {
+        let page = parseInt(query.page, 10);
+        let pageSize = parseInt(query.pageSize, 10);
+        if (!Number.isInteger(page) || page < 1) page = 1;
+        if (!Number.isInteger(pageSize) || pageSize < 1) pageSize = DEFAULT_PAGE_SIZE;
+        if (pageSize > MAX_PAGE_SIZE) pageSize = MAX_PAGE_SIZE;
+        return { page, pageSize, offset: (page - 1) * pageSize, limit: pageSize };
+    }
+    async initiatePayment(userId, orderId, { method })
+    {
+        const order = await Order.findOne({
+            where: {
+                id: orderId,
+                userId
+            }
+        });
+        if (!order)
+        {
+            throw new NotFoundError('Order not found');
+        }
+        if (!PAYABLE_STATES.includes(order.status))
+        {
+            throw new InvalidOrderStateError('The Payment for this order cannot be made at this stage');
+        }
+        let payment = await Payment.findOne({
+            where: { orderId },
+            order: ['createdAt', 'DESC']
+        });
+        if (payment && payment.status === "SUCCESS")
+        {
+            throw new ConflictError('The payment for this order has already been made successfully');
+        }
+        if (!payment || payment.status === "FAILED")
+        {
+            payment = await Payment.create({
+                userId,
+                orderId,
+                amount: order.totalAmount,
+                status: 'PENDING'
+            });
+        }
+        const { gatewayReference, redirectUrl } = await createPaymentRequest({
+            orderId: order.id,
+            amount: order.totalAmount
+        });
+
+        await payment.update({ gatewayReference, method: method || null });
+        return {
+            paymentId: payment.id,
+            gatewayReference,
+            redirectUrl,
+            amount: payment.amount
+        }
+    }
+
+
+    async handleWebhook(payload, headers)
+    {
+        if (!verifyWebhookSignature(headers))
+        {
+            throw new ValidationError('Invalid webhook signature');
+        }
+        const { gatewayReference, status } = payload;
+        if (!gatewayReference || !['SUCCESS', 'FAILED'].includes(status))
+        {
+            throw new ValidationError('Malformed webhook payload');
+        }
+        const payment = await Payment.findOne({
+            where: {
+                gatewayReference
+            }
+        });
+        if (!payment)
+        {
+            throw new NotFoundError('Payment with the gateway reference not available');
+        }
+        if (payment.status !== 'PENDING')
+        {
+            // Already processed — idempotent no-op on webhook replay.
+            return null;
+        }
+        if (status === 'FAILED')
+        {
+            await sequelize.transaction(async (t) =>
+            {
+                await payment.update({ status: 'FAILED' }, { transaction: t });
+                await Order.update({ status: 'PAYMENT_FAILED' }, {
+                    where: {
+                        id: payment.orderId
+                    },
+                    transaction: t
+                });
+                return null;
+            })
+        }
+        const order = await Order.findByPk(payment.orderId, {
+            include: [
+                {
+                    model: OrderItem,
+                    as: 'items'
+                }
+            ]
+        });
+        if (!order)
+        {
+            throw new NotFoundError('Order not found for this payment');
+        }
+        const cart = await Cart.findOne({ where: { userId: payment.userId } });
+        await sequelize.transaction(async (t) =>
+        {
+            await payment.update({ status: 'SUCCESS', completedAt: new Date() }, { transaction: t });
+            await order.update({ status: 'PAID' }, { transaction: t });
+            for (const item of order.items)
+            {
+                await Product.decrement('stockQuantity', {
+                    by: item.quantity,
+                    where: { id: item.productId },
+                    transaction: t
+                })
+            }
+            if (cart)
+            {
+                const orderItemIds = order.items.map(item => item.productId);
+                for (const itemId of orderItemIds)
+                {
+                    await CartItem.destroy(
+                        {
+                            where: { cartId: cart.id, productId: itemId },
+                            transaction: t
+                        })
+                }
+            }
+        });
+        return null;
+    }
+
+    async getMyPaymentById(userId, paymentId)
+    {
+        const payment = await Payment.findOne({ where: { id: paymentId, userId } });
+        if (!payment)
+        {
+            throw new NotFoundError('Payment not found');
+        }
+        return payment;
+    }
+
+    async getById(paymentId)
+    {
+        const payment = await Payment.findByPk(paymentId);
+        if (!payment)
+        {
+            throw new NotFoundError('Payment not found');
+        }
+        return payment;
+    }
+
+    async listPayments(query)
+    {
+        const { page, pageSize, offset, limit } = this.#parsePagination(query);
+        const where = {};
+        if (query.status) where.status = query.status;
+
+        const result = await Payment.findAndCountAll({
+            where,
+            order: [['createdAt', 'DESC']],
+            offset,
+            limit
+        });
+        return this.#toPaginatedResponse(result, page, pageSize);
+    }
 }
+
+
+module.exports = PaymentService;

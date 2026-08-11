@@ -48,8 +48,7 @@ class OrderService
                     include: [
                         {
                             model: Product,
-                            as: 'product',
-                            required: false
+                            as: 'product'
                         }
                     ]
                 }
@@ -65,7 +64,7 @@ class OrderService
             const product = item.product;
             if (!product)
             {
-                throw new BusinessRuleError(`The product ${product.name} is no longer available`);
+                throw new BusinessRuleError(`The product ${product.name} is no longer available for purchase`);
             }
             if (item.quantity > product.stockQuantity)
             {

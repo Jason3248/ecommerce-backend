@@ -45,7 +45,7 @@ class CategoryService
                 throw new ConflictError('A category with this name already exists');
             }
         }
-        await category.update(...(name !== undefined && { name }));
+        await category.update({ ...(name !== undefined && { name }) });
         return category;
     }
 

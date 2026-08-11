@@ -1,4 +1,4 @@
-const AppError = require("./AppError.js");
+const AppError = require("./AppError");
 
 
 class ValidationError extends AppError
@@ -49,6 +49,21 @@ class BusinessRuleError extends AppError
         super(message, 422, 'BUSINESS_RULE_ERROR');
     }
 }
+class OutOfStockError extends AppError
+{
+    constructor(message = 'Requested product quantity is not available')
+    {
+        super(message, 409, 'OUT_OF_STOCK');
+    }
+}
+
+class InvalidOrderStateError extends AppError
+{
+    constructor(message = 'Order is not in a valid state for this action')
+    {
+        super(message, 409, 'INVALID_ORDER_STATE');
+    }
+}
 
 class PaymentError extends AppError
 {
@@ -65,5 +80,7 @@ module.exports = {
     ForbiddenError,
     BusinessRuleError,
     PaymentError,
-    ConflictError
+    ConflictError,
+    OutOfStockError,
+    InvalidOrderStateError
 }

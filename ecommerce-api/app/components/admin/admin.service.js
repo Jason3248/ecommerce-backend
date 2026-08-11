@@ -8,6 +8,8 @@ const MAX_PAGE_SIZE = 30;
 const SORTABLE_FIELDS = {
     firstName_asc: ['firstName', 'ASC'],
     firstName_desc: ['firstName', 'DESC'],
+    lastName_asc: ['lastName', 'ASC'],
+    lastName_desc: ['lastName', 'DESC'],
     createdAt_asc: ['createdAt', 'ASC'],
     createdAt_desc: ['createdAt', 'DESC']
 };

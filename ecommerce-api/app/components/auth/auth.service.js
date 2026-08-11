@@ -14,7 +14,7 @@ class AuthService
         return crypto.createHash('sha256').update(rawToken).digest('hex');
     }
 
-    async register({ firstName, lastName, email, password })
+    async register({ firstName, lastName, email, password, role })
     {
         const existingUser = await User.findOne({
             where: { email }
@@ -27,7 +27,7 @@ class AuthService
         const user = await sequelize.transaction(async (t) =>
         {
             const createdUser = await User.create(
-                { firstName, lastName, email, password: passwordHash },
+                { firstName, lastName, email, password: passwordHash, role: role || null },
                 { transaction: t }
             );
             await Cart.create({ userId: createdUser.id }, { transaction: t });
