@@ -25,7 +25,7 @@ const errorHandler = (err, req, res, next) =>
 
     // Unrecognized error (raw Sequelize/Postgres error, programming bug, etc.)
     // — never leak internals to the client (SRS §52).
-    logger.error('Unhandled error', { stack: err.stack, message: err.message });
+    logger.error('Unhandled error: ', { stack: err.stack, message: err.message });
 
     return res.status(500).json({
         success: false,

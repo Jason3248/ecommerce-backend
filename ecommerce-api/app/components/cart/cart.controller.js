@@ -27,7 +27,7 @@ class CartController
 
     async updateItemQuantity(req, res)
     {
-        const result = await this.service.updateItemQuantity(req.user.id, { newQuantity: req.body });
+        const result = await this.service.updateItemQuantity(req.user.id, req.params.itemId, req.body);
         return res.status(200).json({
             success: true,
             data: result
@@ -36,7 +36,7 @@ class CartController
 
     async removeItem(req, res)
     {
-        await this.service.removeItem(req.user.id, req.body);
+        await this.service.removeItem(req.user.id, req.params.itemId);
         return res.status(200).json({
             success: true,
             data: null

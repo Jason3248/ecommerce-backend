@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const crypto = require("node:crypto");
 const { User, Cart, sequelize, PasswordResetToken } = require("ecommerce-data-model");
 const { ConflictError, NotFoundError, UnauthorizedError, ForbiddenError } = require("../../lib/errors/index.js");
+const logger = require("../../configs/logger.js");
 
 
 const SALT_ROUNDS = 10;
@@ -16,6 +17,7 @@ class AuthService
 
     async register({ firstName, lastName, email, password, role })
     {
+        logger.info(email);
         const existingUser = await User.findOne({
             where: { email }
         });
@@ -27,7 +29,7 @@ class AuthService
         const user = await sequelize.transaction(async (t) =>
         {
             const createdUser = await User.create(
-                { firstName, lastName, email, password: passwordHash, role: role || null },
+                { firstName, lastName, email, password: passwordHash, role: role },
                 { transaction: t }
             );
             await Cart.create({ userId: createdUser.id }, { transaction: t });
@@ -41,7 +43,7 @@ class AuthService
         const user = await User.findOne({ where: { email } });
         if (!user)
         {
-            throw new UnauthorizedError('Invalid email');
+            throw new NotFoundError('Invalid email');
         }
         const passwordMatch = await bcrypt.compare(password, user.password);
         if (!passwordMatch)

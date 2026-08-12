@@ -1,11 +1,12 @@
-const { Order, Cart, sequelize, CartItem, OrderItem, Product, Payment } = require("ecommerce-data-model");
+const { Order, Cart, sequelize, CartItem, OrderItem, Product, Payment, SystemConfig } = require("ecommerce-data-model");
 const { NotFoundError, ForbiddenError, ValidationError, BusinessRuleError, OutOfStockError } = require("../../lib/errors");
 const { Op } = require("sequelize");
+const logger = require("../../configs/logger");
 
 const CANCELLABLE_STATES = ['PAYMENT_PENDING', 'PROCESSING', 'SHIPPED']
 
 const VALID_STATUS_TRANSITIONS = {
-    PENDING_PAYMENT: ['PAID', 'PAYMENT_FAILED', 'CANCELLED'],
+    PAYMENT_PENDING: ['PAID', 'PAYMENT_FAILED', 'CANCELLED'],
     PAID: ['PROCESSING', 'CANCELLED'],
     PROCESSING: ['SHIPPED', 'CANCELLED'],
     SHIPPED: ['DELIVERED'],
@@ -39,6 +40,7 @@ class OrderService
 
     async createOrder(userId)
     {
+        logger.info(userId);
         const cart = await Cart.findOne({
             where: { userId },
             include: [
@@ -87,14 +89,14 @@ class OrderService
                 lineTotal
             }
         });
-        const subTotal = Number(orderItemsData.reduce((acc, curr) => acc + curr.lineTotal, 0).toFixed(2));
+        const subtotalAmount = Number(orderItemsData.reduce((acc, curr) => acc + curr.lineTotal, 0).toFixed(2));
         const taxPercentage = await this.#getConfigNumber('TAX_PERCENTAGE');
         const shippingCharge = await this.#getConfigNumber('SHIPPING_CHARGE');
         const freeShippingThreshold = await this.#getConfigNumber('FREE_SHIPPING_THRESHOLD');
         const taxAmount = Number(((subtotalAmount * taxPercentage) / 100).toFixed(2));
         const shippingAmount = subtotalAmount >= freeShippingThreshold ? 0 : shippingCharge;
         const totalAmount = Number((subtotalAmount + taxAmount + shippingAmount).toFixed(2));
-
+        const method = 'Not done yet';
         const order = await sequelize.transaction(async (t) =>
         {
             const createdOrder = await Order.create({
@@ -124,7 +126,8 @@ class OrderService
                 orderId: createdOrder.id,
                 userId,
                 amount: totalAmount,
-                status: 'PENDING'
+                status: 'PENDING',
+                method
             },
                 { transaction: t }
             )
@@ -153,7 +156,7 @@ class OrderService
     async listMyOrders(userId, query)
     {
         const { page, pageSize, offset, limit } = this.#pagination(query);
-        const { rows, count } = Order.findandCountAll(
+        const { rows, count } = await Order.findAndCountAll(
             {
                 where: { userId },
                 include: [
@@ -162,7 +165,7 @@ class OrderService
                         as: 'items'
                     },
                     {
-                        include: Payment,
+                        model: Payment,
                         as: 'payments'
                     }
                 ],
@@ -241,7 +244,7 @@ class OrderService
     {
         const order = await Order.findOne(
             {
-                where: { orderId },
+                where: { id: orderId },
                 include: [
                     {
                         model: OrderItem,
@@ -270,7 +273,7 @@ class OrderService
         const orderStatus = order.status;
         if (!VALID_STATUS_TRANSITIONS[orderStatus].includes(status))
         {
-            throw new BusinessRuleError('Invalid order transition');
+            throw new BusinessRuleError('Invalid order status transition');
         }
         await order.update({ status });
         return order;

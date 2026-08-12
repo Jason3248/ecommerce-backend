@@ -1,6 +1,6 @@
 const { NotFoundError, ConflictError, BusinessRuleError } = require("../../lib/errors");
 const { Op } = require(Sequelize);
-const { User } = require("ecommerce-data-model");
+const { User, SystemConfig } = require("ecommerce-data-model");
 
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 30;
@@ -27,17 +27,32 @@ class AdminService
         if (pageSize > MAX_PAGE_SIZE) pageSize = MAX_PAGE_SIZE;
         return { page, pageSize, offset: (page - 1) * pageSize, limit: pageSize };
     }
+    #buildWhere(query)
+    {
+        const where = {};
+        if (query.firstName)
+        {
+            where.name = { [Op.ilike]: `%${query.name}%` }
+        }
+        if (query.lastName)
+        {
+            where.sku = { [Op.ilike]: `%${query.sku}%` }
+        }
+        if (query.role)
+        {
+            where.sku = { [Op.ilike]: `%${query.role}%` }
+        }
+        if (query.isBlocked)
+        {
+            where.isBlocked = query.isBlocked
+        }
+        return where;
+    }
 
     async listUsers(query)
     {
         const { page, pageSize, offset, limit } = #pagination(query);
-        const where = {
-            role: 'CUSTOMER'
-        };
-        if (query.isBlocked === "true")
-        {
-            where.isBlocked = true
-        }
+        const where = this.#buildWhere(query);
         const order = [SORTABLE_FIELDS[query.sortBy]] || [DEFAULT_SORT]
         const { rows, count } = await User.findandCountAll({
             where,
@@ -66,8 +81,12 @@ class AdminService
         return user;
     }
 
-    async blockUser(userId)
+    async blockUser(userId, currentAdminId)
     {
+        if (String(userId) === String(currentAdminId))
+        {
+            throw new BusinessRuleError('You cannot block your own account');
+        }
         const user = await User.findByPk(userId);
         if (!user)
         {
@@ -120,6 +139,22 @@ class AdminService
         }
         await user.restore();
         return user;
+    }
+
+    async listConfig()
+    {
+        const configs = await SystemConfig.findAll({ order: [['key', 'ASC']] });
+    }
+
+    async updateConfig(key, { value })
+    {
+        const existing = await SystemConfig.findOne({ where: { key } });
+        if (existing)
+        {
+            await existing.update({ value });
+            return existing;
+        }
+        return SystemConfig.create({ key, value });
     }
 }
 

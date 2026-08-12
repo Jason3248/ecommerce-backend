@@ -21,7 +21,7 @@ export class AdminController
 
     blockUser = async (req, res) =>
     {
-        const result = await this.adminService.blockUser(req.params.id);
+        const result = await this.adminService.blockUser(req.params.id, req.user.id);
         res.status(200).json({ success: true, data: result });
     };
 

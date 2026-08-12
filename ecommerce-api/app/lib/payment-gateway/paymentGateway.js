@@ -20,7 +20,7 @@ const verifyWebhookSignature = (headers) =>
     if (!configuredSecret)
     {
         logger.info(
-            "PAYMENT_WEBHOOK_SECRET not set — webhook signature check SKIPPED"
+            "PAYMENT_WEBHOOK_SECRET not set currently so skipping the check for now."
         );
         return true;
     }

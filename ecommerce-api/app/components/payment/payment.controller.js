@@ -1,14 +1,16 @@
+const logger = require("../../configs/logger.js");
 const PaymentService = require("./payment.service.js");
 
 class PaymentController
 {
-    controller()
+    constructor()
     {
         this.service = new PaymentService();
     }
 
     async initiatePayment(req, res)
     {
+        logger.info(req.params.orderId);
         const result = await this.service.initiatePayment(req.user.id, req.params.orderId, req.body);
         return res.status(200).json({
             success: true,

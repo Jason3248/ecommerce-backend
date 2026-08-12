@@ -228,5 +228,152 @@
             "authenticate",
             "requireAdmin"
         ]
+    },
+    {
+        "method": "GET",
+        "path": "/api/cart",
+        "controller": "cart",
+        "action": "getCart",
+        "middlewares": [
+            "authenticate"
+        ]
+    },
+    {
+        "method": "POST",
+        "path": "/api/cart/items",
+        "controller": "cart",
+        "action": "addItem",
+        "middlewares": [
+            "authenticate"
+        ]
+    },
+    {
+        "method": "PATCH",
+        "path": "/api/cart/items/:itemId",
+        "controller": "cart",
+        "action": "updateItemQuantity",
+        "middlewares": [
+            "authenticate"
+        ]
+    },
+    {
+        "method": "DELETE",
+        "path": "/api/cart/items/:itemId",
+        "controller": "cart",
+        "action": "removeItem",
+        "middlewares": [
+            "authenticate"
+        ]
+    },
+    {
+        "method": "POST",
+        "path": "/api/orders",
+        "controller": "order",
+        "action": "createOrder",
+        "middlewares": [
+            "authenticate"
+        ]
+    },
+    {
+        "method": "POST",
+        "path": "/api/orders/:orderId/cancel",
+        "controller": "order",
+        "action": "cancelMyOrder",
+        "middlewares": [
+            "authenticate"
+        ]
+    },
+    {
+        "method": "GET",
+        "path": "/api/orders",
+        "controller": "order",
+        "action": "listMyOrders",
+        "middlewares": [
+            "authenticate"
+        ]
+    },
+    {
+        "method": "GET",
+        "path": "/api/orders/:orderId",
+        "controller": "order",
+        "action": "getMyOrderById",
+        "middlewares": [
+            "authenticate"
+        ]
+    },
+    {
+        "method": "GET",
+        "path": "/api/admin/orders",
+        "controller": "order",
+        "action": "listOrders",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin"
+        ]
+    },
+    {
+        "method": "GET",
+        "path": "/api/admin/orders/:orderId",
+        "controller": "order",
+        "action": "getById",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin"
+        ]
+    },
+    {
+        "method": "PATCH",
+        "path": "/api/admin/orders/:orderId/status",
+        "controller": "order",
+        "action": "updateOrderStatus",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin"
+        ]
+    },
+    {
+        "method": "POST",
+        "path": "/api/orders/:orderId/payments",
+        "controller": "payment",
+        "action": "initiatePayment",
+        "middlewares": [
+            "authenticate"
+        ]
+    },
+    {
+        "method": "POST",
+        "path": "/api/orders/:orderId/payments/webhook",
+        "controller": "payment",
+        "action": "handleWebhook",
+        "middlewares": []
+    },
+    {
+        "method": "GET",
+        "path": "/api/payments/:paymentId",
+        "controller": "payment",
+        "action": "getMyPaymentById",
+        "middlewares": [
+            "authenticate"
+        ]
+    },
+    {
+        "method": "GET",
+        "path": "/api/admin/payments",
+        "controller": "payment",
+        "action": "listPayments",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin"
+        ]
+    },
+    {
+        "method": "GET",
+        "path": "/api/admin/payments/:paymentId",
+        "controller": "payment",
+        "action": "getById",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin"
+        ]
     }
 ]

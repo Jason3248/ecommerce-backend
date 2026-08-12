@@ -1,4 +1,4 @@
-const { Payment, Order, sequelize } = require("ecommerce-data-model");
+const { Payment, Order, sequelize, OrderItem, Cart, Product, CartItem } = require("ecommerce-data-model");
 const { NotFoundError, BusinessRuleError, InvalidOrderStateError } = require("../../lib/errors");
 const { createPaymentRequest, verifyWebhookSignature } = require("../../lib/payment-gateway/paymentGateway.js");
 
@@ -10,7 +10,7 @@ const MAX_PAGE_SIZE = 30;
 class PaymentService
 {
 
-    #parsePagination(query)
+    #pagination(query)
     {
         let page = parseInt(query.page, 10);
         let pageSize = parseInt(query.pageSize, 10);
@@ -37,7 +37,7 @@ class PaymentService
         }
         let payment = await Payment.findOne({
             where: { orderId },
-            order: ['createdAt', 'DESC']
+            order: [['createdAt', 'DESC']]
         });
         if (payment && payment.status === "SUCCESS")
         {
@@ -57,7 +57,7 @@ class PaymentService
             amount: order.totalAmount
         });
 
-        await payment.update({ gatewayReference, method: method || null });
+        await payment.update({ gatewayReference, method });
         return {
             paymentId: payment.id,
             gatewayReference,
@@ -89,7 +89,6 @@ class PaymentService
         }
         if (payment.status !== 'PENDING')
         {
-            // Already processed — idempotent no-op on webhook replay.
             return null;
         }
         if (status === 'FAILED')
@@ -103,8 +102,8 @@ class PaymentService
                     },
                     transaction: t
                 });
-                return null;
-            })
+            });
+            return null;
         }
         const order = await Order.findByPk(payment.orderId, {
             include: [
@@ -169,17 +168,24 @@ class PaymentService
 
     async listPayments(query)
     {
-        const { page, pageSize, offset, limit } = this.#parsePagination(query);
+        const { page, pageSize, offset, limit } = this.#pagination(query);
         const where = {};
         if (query.status) where.status = query.status;
 
-        const result = await Payment.findAndCountAll({
+        const { rows, count } = await Payment.findAndCountAll({
             where,
             order: [['createdAt', 'DESC']],
             offset,
             limit
         });
-        return this.#toPaginatedResponse(result, page, pageSize);
+        return {
+            rows, count,
+            pagination: {
+                page,
+                pageSize,
+                totalPages: Math.ceil(count / limit)
+            }
+        }
     }
 }
 

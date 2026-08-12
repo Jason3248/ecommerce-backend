@@ -1,11 +1,53 @@
-const { Cart, CartItem } = require("ecommerce-data-model");
-const { NotFoundError, ForbiddenError } = require("../../lib/errors");
+const { Cart, CartItem, SystemConfig, Product } = require("ecommerce-data-model");
+const { NotFoundError, ForbiddenError, OutOfStockError, BusinessRuleError } = require("../../lib/errors");
+const logger = require("../../configs/logger");
 
 class CartService
 {
+    async #getMaxQuantityPerProduct()
+    {
+        const config = await SystemConfig.findOne({
+            where: { key: 'MAX_CART_QUANTITY_PER_PRODUCT' }
+        });
+        if (!config) return null;
+        const parsed = parseInt(config.value);
+        return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+    }
+
+    #calculateSubtotal(items)
+    {
+        const subtotal = items.reduce((sum, item) =>
+        {
+            return sum + parseFloat(item.product.price) * item.quantity;
+        }, 0);
+        return Number(subtotal.toFixed(2));
+    }
+
+    async #serializeCart(cart)
+    {
+        const items = await CartItem.findAll({
+            where: {
+                cartId: cart.id
+            },
+            include: [
+                {
+                    model: Product,
+                    as: 'product'
+                }
+            ],
+            order: [['createdAt', 'ASC']]
+        });
+        return {
+            id: cart.id,
+            userId: cart.userId,
+            items,
+            total: this.#calculateSubtotal(items)
+        }
+    }
     async getCart(userId)
     {
-        const cart = Cart.findOne(
+
+        const cart = await Cart.findOne(
             {
                 where: { userId },
                 include: {
@@ -13,47 +55,95 @@ class CartService
                     as: 'items'
                 }
             });
-        return cart;
+        console.log(cart.userId)
+        return this.#serializeCart(cart);
     }
 
     async addItem(userId, { productId, quantity })
     {
+        const product = await Product.findOne({ where: { id: productId } });
+        if (!product)
+        {
+            throw new NotFoundError('Product not found');
+        }
         const cart = await Cart.findOne({ where: { userId } });
         const existingCartItem = await CartItem.findOne({ where: { cartId: cart.id, productId } });
+        const newQuantity = existingCartItem ? existingCartItem.quantity + quantity : quantity;
+        if (newQuantity > product.stockQuantity)
+        {
+            throw new OutOfStockError(
+                `Only ${product.stockQuantity} unit of "${product.name}" are available`
+            );
+        }
+        const maxItemLimit = await this.#getMaxQuantityPerProduct() || 30;
+        if (newQuantity > maxItemLimit)
+        {
+            throw new BusinessRuleError(
+                `Cannot have more than ${maxItemLimit} of this product in your cart`
+            );
+        }
         if (existingCartItem)
         {
-            return await this.updateItemQuantity(userId, productId, { quantity });
-
+            await existingCartItem.update({ quantity: newQuantity });
+        } else
+        {
+            await CartItem.create({ cartId: cart.id, productId, quantity: newQuantity });
         }
-        const newCartItem = await CartItem.create({
-            cartId: cart.id,
-            productId,
-            quantity
-        });
-        return newCartItem;
+
+        return this.#serializeCart(cart);
     }
 
 
-    async updateItemQuantity(userId, productId, { quantity })
+    async updateItemQuantity(userId, itemId, { quantity })
     {
         const cart = await Cart.findOne({ where: { userId } });
-        const cartItem = await CartItem.findOne({ where: { cartId: cart.id, productId } });
+        const cartItem = await CartItem.findOne({ where: { id: itemId, cartId: cart.id } });
         if (!cartItem)
         {
-            throw new NotFoundError('Cart item not available for updation');
+            throw new NotFoundError('Cart item not found');
         }
-        await cartItem.update({
-            ...(quantity !== undefined && { quantity })
-        });
-        return cartItem;
+        if (quantity === 0)
+        {
+            await cartItem.destroy();
+            return this.#serializeCart(cart);
+        }
+        const product = await Product.findByPk(cartItem.productId);
+        if (quantity > product.stockQuantity)
+        {
+            throw new OutOfStockError(
+                `Only ${product.stockQuantity} unit of "${product.name}" available`
+            );
+        }
+        const maxItemLimit = await this.#getMaxQuantityPerProduct() || 30;
+        if (quantity > maxItemLimit)
+        {
+            throw new BusinessRuleError(
+                `Cannot have more than ${maxItemLimit} of this product in your cart`
+            );
+        }
+        console.log("Requested quantity:", quantity, typeof quantity);
+        console.log("Before:", cartItem.quantity);
+        await cartItem.update({ quantity });
+
+        console.log("After:", cartItem.quantity);
+
+        const check = await CartItem.findByPk(cartItem.id);
+        console.log("DB:", check.quantity);
+
+        return this.#serializeCart(cart);
     }
 
 
-    async removeItem(userId, productId)
+    async removeItem(userId, itemId)
     {
         const cart = await Cart.findOne({ where: { userId } });
-        const cartItem = await CartItem.findOne({ where: { productId } });
+        const cartItem = await CartItem.findOne({ where: { id: itemId, cartId: cart.id } });
+        if (!cartItem)
+        {
+            throw new NotFoundError('Cart Item not found');
+        }
         await cartItem.destroy();
+        return this.#serializeCart(cart);
     }
 }
 
