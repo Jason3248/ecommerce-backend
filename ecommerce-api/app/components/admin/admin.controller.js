@@ -1,6 +1,5 @@
 const AdminService = require("./admin.service.js");
-
-export class AdminController
+class AdminController
 {
     constructor()
     {
@@ -9,51 +8,57 @@ export class AdminController
 
     async listUsers(req, res)
     {
-        const result = await this.adminService.listUsers(req.query);
+        const result = await this.service.listUsers(req.query);
         res.status(200).json({ success: true, data: result });
     };
 
-    getUserById = async (req, res) =>
+    async getById(req, res) 
     {
-        const result = await this.adminService.getUserById(req.params.id);
+        const result = await this.service.getById(req.params.userId);
         res.status(200).json({ success: true, data: result });
     };
 
-    blockUser = async (req, res) =>
+    async blockUser(req, res)
     {
-        const result = await this.adminService.blockUser(req.params.id, req.user.id);
+        const result = await this.service.blockUser(req.params.userId, req.user.id);
         res.status(200).json({ success: true, data: result });
     };
 
-    unblockUser = async (req, res) =>
+    async unblockUser(req, res)
     {
-        const result = await this.adminService.unblockUser(req.params.id);
+        const result = await this.service.unblockUser(req.params.userId);
         res.status(200).json({ success: true, data: result });
     };
 
-    softDeleteUser = async (req, res) =>
+    async deleteUser(req, res)
     {
-        await this.adminService.softDeleteUser(req.params.id);
+        await this.service.deleteUser(req.params.userId, req.user.id);
         res.status(200).json({ success: true, data: null });
     };
 
-    restoreUser = async (req, res) =>
+    async restoreUser(req, res)
     {
-        const result = await this.adminService.restoreUser(req.params.id);
+        const result = await this.service.restoreUser(req.params.userId);
         res.status(200).json({ success: true, data: result });
     };
 
-    listConfig = async (req, res) =>
+    async listConfig(req, res)
     {
-        const result = await this.adminService.listConfig();
+        const result = await this.service.listConfig();
         res.status(200).json({ success: true, data: result });
     };
 
-    updateConfig = async (req, res) =>
+    async updateConfig(req, res)
     {
-        const result = await this.adminService.updateConfig(req.params.key, req.body);
+        const result = await this.service.updateConfig(req.params.key, req.body);
         res.status(200).json({ success: true, data: result });
     };
+
+    async createAdmin(req, res)
+    {
+        const result = await this.service.createAdmin(req.body);
+        res.status(200).json({ success: true, data: result });
+    }
 }
 
-export default new AdminController();
+module.exports = AdminController;

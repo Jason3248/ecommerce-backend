@@ -104,7 +104,12 @@ class User extends Model
 
         User.hasMany(models.PasswordResetToken, {
             foreignKey: 'userId',
-            as: 'tokens'
+            as: 'passwordTokens'
+        });
+
+        User.hasMany(models.EmailVerificationToken, {
+            foreignKey: 'userId',
+            as: 'emailVerificationTokens'
         });
     }
 }

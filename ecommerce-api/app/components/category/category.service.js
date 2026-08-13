@@ -57,6 +57,7 @@ class CategoryService
         {
             throw new NotFoundError('Category not found');
         }
+        // if (categoy)
         await category.destroy();
     }
 

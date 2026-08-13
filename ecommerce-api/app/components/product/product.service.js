@@ -1,6 +1,6 @@
 const { Product, Category } = require("ecommerce-data-model");
 const { NotFoundError, ConflictError } = require("../../lib/errors");
-const { Op } = require("sequelize");
+const { Op, ValidationError } = require("sequelize");
 
 
 const DEFAULT_PAGE_SIZE = 20
@@ -175,6 +175,32 @@ class ProductService
         }
         await product.restore();
         return product;
+    }
+
+
+    async uploadProductImages(productId, files = [])
+    {
+        if (!files || files.length === 0)
+        {
+            throw new ValidationError('no images provided')
+        }
+
+        const product = await Product.findByPk(productId);
+        if (!product)
+        {
+            throw new NotFoundError('Product not found');
+        }
+
+        const imageData = files.map(file => ({
+            productId,
+            imageUrl: file.path,
+            fileName: file.originalame,
+            mimeType: file.mimetype,
+            size: file.size
+        }));
+
+        const createdImage = await productImage.bulkCreate(imageData)
+        return createdImages;
     }
 }
 

@@ -96,7 +96,7 @@ class OrderService
         const taxAmount = Number(((subtotalAmount * taxPercentage) / 100).toFixed(2));
         const shippingAmount = subtotalAmount >= freeShippingThreshold ? 0 : shippingCharge;
         const totalAmount = Number((subtotalAmount + taxAmount + shippingAmount).toFixed(2));
-        const method = 'Not done yet';
+        const method = 'Not Assigned yet';
         const order = await sequelize.transaction(async (t) =>
         {
             const createdOrder = await Order.create({

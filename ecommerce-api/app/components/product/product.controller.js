@@ -68,6 +68,15 @@ class ProductController
             data: result
         });
     }
+
+    async uploadImages(req, res)
+    {
+        const result = await this.service.uploadProductImages(req.params.productId, req.files);
+        return res.status(201).json({
+            success: true,
+            data: result
+        })
+    }
 }
 
 module.exports = ProductController;

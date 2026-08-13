@@ -375,5 +375,85 @@
             "authenticate",
             "requireAdmin"
         ]
+    },
+    {
+        "method": "POST",
+        "path": "/api/admin",
+        "controller": "admin",
+        "action": "createAdmin",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin"
+        ]
+    },
+    {
+        "method": "GET",
+        "path": "/api/admin/users",
+        "controller": "admin",
+        "action": "listUsers",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin"
+        ]
+    },
+    {
+        "method": "GET",
+        "path": "/api/admin/users/:userId",
+        "controller": "admin",
+        "action": "getById",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin"
+        ]
+    },
+    {
+        "method": "PATCH",
+        "path": "/api/admin/users/:userId/block",
+        "controller": "admin",
+        "action": "blockUser",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin"
+        ]
+    },
+    {
+        "method": "PATCH",
+        "path": "/api/admin/users/:userId/unblock",
+        "controller": "admin",
+        "action": "unblockUser",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin"
+        ]
+    },
+    {
+        "method": "DELETE",
+        "path": "/api/admin/users/:userId",
+        "controller": "admin",
+        "action": "deleteUser",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin"
+        ]
+    },
+    {
+        "method": "PATCH",
+        "path": "/api/admin/users/:userId/restore",
+        "controller": "admin",
+        "action": "restoreUser",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin"
+        ]
+    },
+    {
+        "method": "GET",
+        "path": "/api/admin/config",
+        "controller": "admin",
+        "action": "listConfig",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin"
+        ]
     }
 ]

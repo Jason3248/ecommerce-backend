@@ -1,3 +1,4 @@
+const logger = require("../../configs/logger.js");
 const CartService = require("./cart.service.js");
 
 class CartController
@@ -10,6 +11,7 @@ class CartController
     async getCart(req, res)
     {
         const result = await this.service.getCart(req.user.id);
+        logger.info(req.user.id)
         return res.status(200).json({
             success: true,
             data: result

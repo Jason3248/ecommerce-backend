@@ -128,7 +128,7 @@ class PaymentService
                     by: item.quantity,
                     where: { id: item.productId },
                     transaction: t
-                })
+                });
             }
             if (cart)
             {

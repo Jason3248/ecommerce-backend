@@ -1,6 +1,6 @@
 const { Cart, CartItem, SystemConfig, Product } = require("ecommerce-data-model");
 const { NotFoundError, ForbiddenError, OutOfStockError, BusinessRuleError } = require("../../lib/errors");
-const logger = require("../../configs/logger");
+const logger = require("../../configs/logger.js");
 
 class CartService
 {
@@ -46,7 +46,6 @@ class CartService
     }
     async getCart(userId)
     {
-
         const cart = await Cart.findOne(
             {
                 where: { userId },
@@ -55,7 +54,10 @@ class CartService
                     as: 'items'
                 }
             });
-        console.log(cart.userId)
+        if (!cart)
+        {
+            throw new NotFoundError("Cart not found");
+        }
         return this.#serializeCart(cart);
     }
 
@@ -79,7 +81,7 @@ class CartService
         if (newQuantity > maxItemLimit)
         {
             throw new BusinessRuleError(
-                `Cannot have more than ${maxItemLimit} of this product in your cart`
+                `Cannot have more than ${maxItemLimit} of a product in your cart`
             );
         }
         if (existingCartItem)
@@ -121,15 +123,7 @@ class CartService
                 `Cannot have more than ${maxItemLimit} of this product in your cart`
             );
         }
-        console.log("Requested quantity:", quantity, typeof quantity);
-        console.log("Before:", cartItem.quantity);
         await cartItem.update({ quantity });
-
-        console.log("After:", cartItem.quantity);
-
-        const check = await CartItem.findByPk(cartItem.id);
-        console.log("DB:", check.quantity);
-
         return this.#serializeCart(cart);
     }
 

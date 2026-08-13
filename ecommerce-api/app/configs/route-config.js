@@ -4,6 +4,7 @@ const middleware = require("../middleware/auth.middleware.js");
 module.exports = (app) =>
 {
     const controllers = new Map();
+    const validationSchemas = new Map();
     routes.forEach((route) =>
     {
         const controllerPath = path.resolve(__dirname, `../components/${route.controller}/${route.controller}.controller.js`);
@@ -25,6 +26,17 @@ module.exports = (app) =>
             if (!middleware[name]) throw new Error(`Unknown middleware: ${name}`);
             return middleware[name];
         });
+        if (route.validate)
+        {
+            const validationPath = path.resolve(__dirname, `../components/${route.controller}/${route.controller}.validation.js`);
+            if (!validationSchemas.has(validationPath))
+                validationSchemas.set(validationPath, require(validationPath));
+
+            const schema = validationSchemas.get(validationPath)[route.validate];
+            if (!schema) throw new Error(`Unknown validation schema: ${route.controller}.${route.validate}`);
+
+            chain.push(validateBody(schema));
+        }
         app[method](route.path, ...chain, controller[route.action].bind(controller));
     });
 };

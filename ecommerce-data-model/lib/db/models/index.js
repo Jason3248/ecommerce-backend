@@ -15,7 +15,7 @@ const OrderItem = require("./order-item.model.js").initModel(sequelize);
 const Payment = require("./payment.model.js").initModel(sequelize);
 const SystemConfig = require("./system-config.model.js").initModel(sequelize);
 const PasswordResetToken = require("./password-reset-token.model.js").initModel(sequelize);
-
+const EmailVerificationToken = require("./email-verification-token.model.js").initModel(sequelize);
 
 const models = {
     User,
@@ -27,7 +27,8 @@ const models = {
     OrderItem,
     Payment,
     SystemConfig,
-    PasswordResetToken
+    PasswordResetToken,
+    EmailVerificationToken
 };
 
 Object.values(models).forEach(model => model.associate(models));

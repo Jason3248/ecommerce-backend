@@ -187,7 +187,7 @@
         "method": "GET",
         "path": "/api/admin/users/:userId",
         "controller": "admin",
-        "action": "getUserById",
+        "action": "getById",
         "middlewares": []
     },
     {

@@ -1,23 +1,36 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const crypto = require("node:crypto");
-const { User, Cart, sequelize, PasswordResetToken } = require("ecommerce-data-model");
-const { ConflictError, NotFoundError, UnauthorizedError, ForbiddenError } = require("../../lib/errors/index.js");
+const { User, Cart, sequelize, PasswordResetToken, EmailVerificationToken } = require("ecommerce-data-model");
+const { ConflictError, NotFoundError, UnauthorizedError, ForbiddenError, } = require("../../lib/errors/index.js");
 const logger = require("../../configs/logger.js");
-
+const EmailService = require("../../lib/mail/EmailService.js");
 
 const SALT_ROUNDS = 10;
-const RESET_TOKEN_EXPIRY_MINUTES = 60;
+const RESET_TOKEN_EXPIRY_HOURS = 1;
+const VERIFICATION_TOKEN_EXPIRY_HOURS = 24
+
 class AuthService
 {
+    constructor()
+    {
+        this.emailService = new EmailService();
+    }
     #hashToken(rawToken)
     {
         return crypto.createHash('sha256').update(rawToken).digest('hex');
     }
 
-    async register({ firstName, lastName, email, password, role })
+    #toSafeUser(userInstance)
     {
-        logger.info(email);
+        const { id, name, email, role, isEmailVerified, isBlocked, createdAt } =
+            userInstance.toJSON ? userInstance.toJSON() : userInstance;
+        return { id, name, email, role, isEmailVerified, isBlocked, createdAt };
+    }
+
+    async register({ firstName, lastName, email, password })
+    {
+        // logger.info(email);
         const existingUser = await User.findOne({
             where: { email }
         });
@@ -29,13 +42,31 @@ class AuthService
         const user = await sequelize.transaction(async (t) =>
         {
             const createdUser = await User.create(
-                { firstName, lastName, email, password: passwordHash, role: role },
+                { firstName, lastName, email, password: passwordHash },
                 { transaction: t }
             );
             await Cart.create({ userId: createdUser.id }, { transaction: t });
             return createdUser;
         });
-        return user;
+
+        const rawToken = crypto.randomBytes(32).toString('hex');
+        const expiresAt = new Date(Date.now() + VERIFICATION_TOKEN_EXPIRY_HOURS * 60 * 60 * 1000);
+        await EmailVerificationToken.create({
+            userId: user.id,
+            token: this.#hashToken(rawToken),
+            expiresAt
+        });
+
+        try
+        {
+            const result = await this.emailService.sendVerificationEmail(user, rawToken);
+            console.log("sendEmail Result: ", result);
+        } catch (error)
+        {
+            console.error(error);
+            logger.error('email verification url failed to send', { userId: user.id, error: error.message, stack: error.stack })
+        }
+        return this.#toSafeUser(user);
     }
 
     async login({ email, password })
@@ -43,16 +74,19 @@ class AuthService
         const user = await User.findOne({ where: { email } });
         if (!user)
         {
-            throw new NotFoundError('Invalid email');
+            logger.warn('Login failed: no account for this email');
+            throw new UnauthorizedError('Invalid email');
+        }
+        if (user.isBlocked)
+        {
+            logger.warn('Login failed: account is blocked', { userId: user.id });
+            throw new ForbiddenError('The account has been blocked');
         }
         const passwordMatch = await bcrypt.compare(password, user.password);
         if (!passwordMatch)
         {
+            logger.warn('Login failed: incorrect password', { userId: user.id });
             throw new UnauthorizedError("Invalid password");
-        }
-        if (user.isBlocked)
-        {
-            throw new ForbiddenError('The account has been blocked');
         }
         const token = jwt.sign(
             {
@@ -67,7 +101,7 @@ class AuthService
 
         return {
             token,
-            user
+            user: this.#toSafeUser(user)
         };
     }
 
@@ -84,7 +118,7 @@ class AuthService
             return null;
         }
         const rawToken = crypto.randomBytes(32).toString('hex');
-        const expiresAt = new Date(Date.now() + RESET_TOKEN_EXPIRY_MINUTES * 60 * 1000);
+        const expiresAt = new Date(Date.now() + RESET_TOKEN_EXPIRY_HOURS * 60 * 60 * 1000);
         await PasswordResetToken.create({
             userId: user.id,
             token: this.#hashToken(rawToken),
@@ -123,9 +157,17 @@ class AuthService
                 }
             );
             await resetToken.update({ usedAt: new Date() }, { transaction: t });
-
         })
+    }
 
+
+    async verifyEmail(userId, { email })
+    {
+        const user = await User.infdByPk(userId);
+        if (!user)
+        {
+            throw new NotFoundError('user not found');
+        }
     }
 }
 module.exports = AuthService;

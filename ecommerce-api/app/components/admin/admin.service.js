@@ -1,9 +1,13 @@
-const { NotFoundError, ConflictError, BusinessRuleError } = require("../../lib/errors");
-const { Op } = require(Sequelize);
+const { NotFoundError, ConflictError, BusinessRuleError, ForbiddenError } = require("../../lib/errors");
+const { Op } = require("sequelize");
 const { User, SystemConfig } = require("ecommerce-data-model");
+const bcrypt = require("bcrypt");
+const { log } = require("winston");
+const logger = require("../../configs/logger");
 
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 30;
+const SALT_ROUNDS = 10;
 
 const SORTABLE_FIELDS = {
     firstName_asc: ['firstName', 'ASC'],
@@ -20,8 +24,8 @@ class AdminService
 {
     #pagination(query)
     {
-        const page = parseInt(query.page);
-        const pageSize = parseInt(query.pageSize);
+        let page = parseInt(query.page);
+        let pageSize = parseInt(query.pageSize);
         if (!Number.isInteger(page) || page < 1) page = 1;
         if (!Number.isInteger(pageSize) || pageSize < 1) pageSize = DEFAULT_PAGE_SIZE
         if (pageSize > MAX_PAGE_SIZE) pageSize = MAX_PAGE_SIZE;
@@ -49,19 +53,26 @@ class AdminService
         return where;
     }
 
+    #toSafeUser(userInstance)
+    {
+        const { id, name, email, role, isEmailVerified, isBlocked, createdAt } =
+            userInstance.toJSON ? userInstance.toJSON() : userInstance;
+        return { id, name, email, role, isEmailVerified, isBlocked, createdAt };
+    }
+
     async listUsers(query)
     {
-        const { page, pageSize, offset, limit } = #pagination(query);
+        const { page, pageSize, offset, limit } = this.#pagination(query);
         const where = this.#buildWhere(query);
-        const order = [SORTABLE_FIELDS[query.sortBy]] || [DEFAULT_SORT]
-        const { rows, count } = await User.findandCountAll({
+        const order = [SORTABLE_FIELDS[query.sortBy] || DEFAULT_SORT]
+        const { rows, count } = await User.findAndCountAll({
             where,
             limit,
             offset,
             order
         });
         return {
-            rows,
+            rows: rows.map(user => this.#toSafeUser(user)),
             count,
             pagination: {
                 page,
@@ -71,22 +82,18 @@ class AdminService
         }
     }
 
-    async getUserById(userId)
+    async getById(userId)
     {
         const user = await User.findByPk(userId);
         if (!user)
         {
             throw new NotFoundError('User not found');
         }
-        return user;
+        return this.#toSafeUser(user);
     }
 
     async blockUser(userId, currentAdminId)
     {
-        if (String(userId) === String(currentAdminId))
-        {
-            throw new BusinessRuleError('You cannot block your own account');
-        }
         const user = await User.findByPk(userId);
         if (!user)
         {
@@ -94,15 +101,24 @@ class AdminService
         }
         if (user.isBlocked)
         {
-            throw new BusinessRuleError('User is already blocked');
+            throw new ForbiddenError('User is already blocked');
+        }
+        if (String(userId) === String(currentAdminId))
+        {
+            throw new ForbiddenError('You cannot block your own account');
+        }
+        if (user.role === "ADMIN")
+        {
+            throw new ForbiddenError('You cannot block an Admin account');
         }
         await user.update({ isBlocked: true })
-        return user;
+        return this.#toSafeUser(user);
     }
 
     async unblockUser(userId)
     {
         const user = await User.findByPk(userId);
+        // logger.info(user);
         if (!user)
         {
             throw new NotFoundError('User not found');
@@ -112,15 +128,27 @@ class AdminService
             throw new BusinessRuleError('User is not blocked');
         }
         await user.update({ isBlocked: false })
-        return user;
+        return this.#toSafeUser(user);
     }
 
-    async deleteUser(userId)
+    async deleteUser(userId, currentAdminId)
     {
         const user = await User.findByPk(userId);
         if (!user)
         {
             throw new NotFoundError('User not found');
+        }
+        if (user.isBlocked)
+        {
+            throw new ForbiddenError('This user has been already deleted')
+        }
+        if (String(userId) === String(currentAdminId))
+        {
+            throw new ForbiddenError('You cannot delete your own account');
+        }
+        if (user.role === "ADMIN")
+        {
+            throw new ForbiddenError('You cannot delete an Admin account');
         }
         await user.destroy();
         return null;
@@ -138,12 +166,13 @@ class AdminService
             throw new BusinessRuleError('User not deleted');
         }
         await user.restore();
-        return user;
+        return this.#toSafeUser(user);
     }
 
     async listConfig()
     {
         const configs = await SystemConfig.findAll({ order: [['key', 'ASC']] });
+        return configs;
     }
 
     async updateConfig(key, { value })
@@ -155,6 +184,24 @@ class AdminService
             return existing;
         }
         return SystemConfig.create({ key, value });
+    }
+
+    async createAdmin({ firstName, lastName, email, password })
+    {
+        const existingUser = await User.findOne({ where: { email } });
+        if (existingUser)
+        {
+            throw new ConflictError('An admin with the email already exists');
+        }
+        const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+        const admin = await User.create({
+            firstName,
+            lastName,
+            email,
+            password: hashedPassword,
+            role: 'ADMIN'
+        });
+        return this.#toSafeUser(user);
     }
 }
 
