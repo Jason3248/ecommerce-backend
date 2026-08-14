@@ -216,6 +216,16 @@
         ]
     },
     {
+        "method": "GET",
+        "path": "/api/admin/products/:productId/images",
+        "controller": "product",
+        "action": "getProductImages",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin"
+        ]
+    },
+    {
         "method": "POST",
         "path": "/api/admin/products",
         "controller": "product",
@@ -234,6 +244,16 @@
             "authenticate",
             "requireAdmin",
             "uploadMultipleImages"
+        ]
+    },
+    {
+        "method": "GET",
+        "path": "/api/admin/products/:productId/images",
+        "controller": "product",
+        "action": "getProductImages",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin"
         ]
     },
     {
@@ -268,7 +288,7 @@
     },
     {
         "method": "DELETE",
-        "path": "/api/admin/products/:productId/images/:publicId/delete",
+        "path": "/api/admin/products/:productId/images/:imageId/delete",
         "controller": "product",
         "action": "deleteProductImage",
         "middlewares": [

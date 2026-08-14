@@ -35,7 +35,9 @@ const deleteFromCloudinary = async (publicId) =>
     if (!publicId) return;
     try
     {
-        await cloudinary.uploader.destroy(publicId);
+        console.log('Calling cloudinary.destroy with:', publicId);
+        const result = await cloudinary.uploader.destroy(publicId);
+        console.log('Cloudinary result:', result);;
     } catch (error)
     {
         console.error(`Failed to delete Cloudinary asset [${publicId}]:`, error.message);

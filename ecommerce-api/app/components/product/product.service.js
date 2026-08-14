@@ -2,6 +2,7 @@ const { Product, Category, ProductImage, sequelize } = require("ecommerce-data-m
 const { NotFoundError, ConflictError } = require("../../lib/errors");
 const { Op, ValidationError } = require("sequelize");
 const { uploadToCloudinary, deleteFromCloudinary } = require("../../utils/cloudinary");
+const logger = require("../../configs/logger");
 
 
 const DEFAULT_PAGE_SIZE = 20
@@ -57,18 +58,29 @@ class ProductService
         return where;
     }
 
-
-    async listProducts(query)
+    async listProducts(query, role)
     {
         const { page, pageSize, offset, limit } = this.#pagination(query);
         const order = [SORTABLE_FIELDS[query.sortBy] || DEFAULT_SORT];
         const where = this.#buildWhere(query);
+        const isAdmin = role === 'ADMIN';
+
         const { rows, count } = await Product.findAndCountAll({
+            include: [
+                {
+                    model: Category,
+                    as: 'category',
+                    required: !isAdmin,
+                    paranoid: isAdmin ? false : true
+                }
+            ],
             where,
             limit,
             offset,
-            order
+            order,
+            paranoid: !isAdmin
         });
+
         return {
             rows,
             count,
@@ -80,9 +92,9 @@ class ProductService
         }
     }
 
-    async getById(productId)
+    async getById(productId, role)
     {
-        const product = await Product.findByPk(productId);
+        const product = await Product.findByPk(productId, { paranoid: role !== 'ADMIN' });
         if (!product)
         {
             throw new NotFoundError('Product not found');
@@ -109,7 +121,7 @@ class ProductService
         return createdProduct;
     }
 
-    async updateProduct(productId, { name, description, price, categoryId } = {})
+    async updateProduct(productId, { name, description, price, categoryId })
     {
         if (name === undefined &&
             description === undefined &&
@@ -134,7 +146,7 @@ class ProductService
     }
 
 
-    async updateInventory(productId, { stockQuantity } = {})
+    async updateInventory(productId, { stockQuantity })
     {
         const product = await Product.findByPk(productId);
         if (!product)
@@ -211,18 +223,31 @@ class ProductService
         return createdImages;
     }
 
-    async deleteProductImage(publicId)
+    async getProductImages(productId)
     {
-        const image = await ProductImage.findOne({ where: { publicId } });
+        const images = await ProductImage.findAll({ where: { productId } });
+        return images;
+    }
+
+    async deleteProductImage({ productId, imageId })
+    {
+        logger.info(imageId);
+
+        const image = await ProductImage.findOne({
+            where: { id: imageId, productId }
+        });
+
         if (!image)
         {
             throw new NotFoundError('Image not found');
         }
-        await sequelize.transaction(async (t) =>
-        {
-            await image.destroy();
-            await deleteFromCloudinary(publicId);
-        });
+
+        const publicId = image.publicId;
+
+        await image.destroy();
+
+        await deleteFromCloudinary(publicId);
+
         return null;
     }
 }

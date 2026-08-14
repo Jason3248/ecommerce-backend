@@ -8,7 +8,7 @@ class ProductController
 
     async listProducts(req, res)
     {
-        const result = await this.service.listProducts(req.query);
+        const result = await this.service.listProducts(req.query, req.user.role);
         return res.status(200).json({
             success: true,
             data: result
@@ -17,7 +17,7 @@ class ProductController
 
     async getById(req, res)
     {
-        const result = await this.service.getById(req.params.productId);
+        const result = await this.service.getById(req.params.productId, req.user.role);
         return res.status(200).json({
             success: true,
             data: result
@@ -78,10 +78,22 @@ class ProductController
         })
     }
 
+    async getProductImages(req, res)
+    {
+        const result = await this.service.getProductImages(req.params.productId);
+        return res.status(201).json({
+            success: true,
+            data: result
+        });
+    }
+
     async deleteProductImage(req, res)
     {
-        await this.service.deleteImage(req.params.publicId);
-        return null;
+        await this.service.deleteProductImage(req.params);
+        return res.status(201).json({
+            success: true,
+            data: result
+        });
     }
 }
 

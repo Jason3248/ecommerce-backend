@@ -9,7 +9,7 @@ class CategoryController
 
     async listCategories(req, res)
     {
-        const result = await this.service.listCategories();
+        const result = await this.service.listCategories(req.user.role);
         return res.status(200).json({
             success: true,
             data: result
@@ -18,7 +18,7 @@ class CategoryController
 
     async getById(req, res)
     {
-        const result = await this.service.getById(req.params.categoryId);
+        const result = await this.service.getById(req.params.categoryId, req.user.role);
         return res.status(200).json({
             success: true,
             data: result
