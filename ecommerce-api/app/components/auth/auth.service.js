@@ -1,14 +1,15 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const crypto = require("node:crypto");
-const { User, Cart, sequelize, PasswordResetToken, EmailVerificationToken } = require("ecommerce-data-model");
-const { ConflictError, NotFoundError, UnauthorizedError, ForbiddenError, } = require("../../lib/errors/index.js");
+const { User, Cart, sequelize, PasswordResetToken, EmailVerificationToken, EmailUpdationToken } = require("ecommerce-data-model");
+const { ConflictError, NotFoundError, UnauthorizedError, ForbiddenError, ValidationError, BusinessRuleError } = require("../../lib/errors/index.js");
 const logger = require("../../configs/logger.js");
 const EmailService = require("../../lib/mail/EmailService.js");
 
 const SALT_ROUNDS = 10;
 const RESET_TOKEN_EXPIRY_HOURS = 1;
-const VERIFICATION_TOKEN_EXPIRY_HOURS = 24
+const VERIFICATION_TOKEN_EXPIRY_HOURS = 24;
+const EMAIL_CHANGE_TOKEN_EXPIRY_HOURS = 1;
 
 class AuthService
 {
@@ -31,10 +32,10 @@ class AuthService
     async register({ firstName, lastName, email, password })
     {
         // logger.info(email);
-        const existingUser = await User.findOne({
+        const existing = await User.findOne({
             where: { email }
         });
-        if (existingUser)
+        if (existing)
         {
             throw new ConflictError('An account with this email already exists.');
         }
@@ -56,11 +57,9 @@ class AuthService
             token: this.#hashToken(rawToken),
             expiresAt
         });
-
         try
         {
-            const result = await this.emailService.sendVerificationEmail(user, rawToken);
-            console.log("sendEmail Result: ", result);
+            await this.emailService.sendVerificationEmail(user, rawToken);
         } catch (error)
         {
             console.error(error);
@@ -124,13 +123,14 @@ class AuthService
             token: this.#hashToken(rawToken),
             expiresAt
         });
-
-        // const resetUrl = `${process.env.APP_BASE_URL || ''}/reset-password?token=${rawToken}`;
-        // await sendEmail({
-        //     to: user.email,
-        //     subject: 'Reset Your Password',
-        //     text: `Use this link to reset your password (expires in ${RESET_TOKEN_EXPIRY_MINUTES} minutes): ${resetUrl}`
-        // });
+        try
+        {
+            await this.emailService.sendPasswordResetEmail(user, rawToken);
+        } catch (error)
+        {
+            console.error(error);
+            logger.error('Forgot password email failed to send', { userId: user.id, error: error.message });
+        }
         return rawToken;
     }
 
@@ -160,14 +160,152 @@ class AuthService
         })
     }
 
-
-    async verifyEmail(userId, { email })
+    async verifyEmail({ token })
     {
-        const user = await User.infdByPk(userId);
+        if (!token)
+        {
+            throw new ValidationError('Verification token is required');
+        }
+        const hashedToken = this.#hashToken(token);
+
+        const verificationToken = await EmailVerificationToken.findOne({
+            where: { token: hashedToken }
+        });
+        if (!verificationToken || verificationToken.expiresAt < new Date())
+        {
+            throw new UnauthorizedError('This verification link is invalid or has expired');
+        }
+
+        const user = await User.findByPk(verificationToken.userId);
         if (!user)
         {
-            throw new NotFoundError('user not found');
+            throw new UnauthorizedError('This verification link is invalid or has expired');
         }
+
+        if (user.isEmailVerified)
+        {
+            await verificationToken.destroy();
+            return null;
+        }
+
+        await sequelize.transaction(async (t) =>
+        {
+            await user.update({ isEmailVerified: true }, { transaction: t });
+            await verificationToken.destroy({ transaction: t }); // consumes it — no usedAt column, deletion IS the "used" state
+        });
+
+        return null;
+    }
+
+    async requestVerificationEmail(userId)
+    {
+        const user = await User.findByPk(userId);
+        if (!user)
+        {
+            throw new NotFoundError('User not found');
+        }
+
+        if (user.isEmailVerified)
+        {
+            throw new ConflictError('Your email is already verified');
+        }
+
+        await EmailVerificationToken.destroy({ where: { userId } });
+
+        const rawToken = crypto.randomBytes(32).toString('hex');
+        const expiresAt = new Date(Date.now() + VERIFICATION_TOKEN_EXPIRY_HOURS * 60 * 60 * 1000);
+        await EmailVerificationToken.create({
+            userId: user.id,
+            token: this.#hashToken(rawToken),
+            expiresAt
+        });
+
+        try
+        {
+            await this.emailService.sendVerificationEmail(user, rawToken);
+        }
+        catch (error)
+        {
+            console.error(error);
+            logger.error('Resend verification email failed to send', { userId: user.id, error: error.message });
+        }
+
+        return null;
+    }
+
+    async requestUpdationEmail(userId, { newEmail, password })
+    {
+        const user = await User.findByPk(userId);
+        if (!userId)
+        {
+            throw new NotFoundError('User not found');
+        }
+        if (newEmail === user.email)
+        {
+            throw new BusinessRuleError('Please provide a different email than your current one');
+        }
+        const passwordMatch = await bcrypt.compare(password, user.password);
+        if (!passwordMatch)
+        {
+            throw new UnauthorizedError('Invalid password');
+        }
+        const existing = await User.findOne({ where: { email: newEmail } });
+        if (existing)
+        {
+            throw new ConflictError('An account with this email already exists');
+        }
+        await EmailUpdationToken.destroy({ where: { userId } });
+        const rawToken = crypto.randomBytes(32).toString('hex');
+        const expiresAt = new Date(Date.now() + EMAIL_CHANGE_TOKEN_EXPIRY_HOURS * 60 * 60 * 1000);
+        await EmailUpdationToken.create({
+            userId: user.id,
+            newEmail,
+            token: this.#hashToken(rawToken),
+            expiresAt
+        });
+        try
+        {
+            await this.emailService.sendEmailUpdateConfirmation(user, newEmail, rawToken)
+        } catch (error)
+        {
+            logger.error('Email change alert failed to send', { userId: user.id, error: error.message });
+        }
+    }
+
+
+    async updateEmail({ token })
+    {
+        if (!token)
+        {
+            throw new ValidationError('Token is required');
+        }
+        const hashedToken = this.#hashToken(token);
+        const updationToken = await EmailUpdationToken.findOne({ where: { token } });
+        if (!updationToken || updationToken.expiresAt < new Date())
+        {
+            throw new ValidationError('The Email updation link has been expires or is invalid');
+        }
+        const existing = await User.findOne({ where: { email: updationToken.newEmail } });
+        if (existing)
+        {
+            throw new ValidationError('This email address is no longer available');
+        }
+        await sequelize.transaction(async (t) =>
+        {
+            await User.update(
+                {
+                    email: updationToken.newEmail
+                },
+                {
+                    where: {
+                        id: updationToken.userId,
+                        transaction: t
+                    }
+                }
+            );
+            await updationToken.destroy({ transaction: t });
+        });
+        return null;
     }
 }
 module.exports = AuthService;

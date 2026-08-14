@@ -296,6 +296,13 @@
         "middlewares": []
     },
     {
+        "method": "POST",
+        "path": "/api/admin/products/:productId/images",
+        "controller": "product",
+        "action": "uploadProductImages",
+        "middlewares": []
+    },
+    {
         "method": "PATCH",
         "path": "/api/admin/products/:productId",
         "controller": "product",

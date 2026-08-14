@@ -27,7 +27,7 @@ class EmailService
         const verificationUrl =
             `${process.env.APP_URL}/auth/verify-email?token=${encodeURIComponent(token)}`;
 
-        const result = await this.transporter.sendMail({
+        await this.transporter.sendMail({
             from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM_ADDRESS}>`,
             to: user.email,
             subject: "Verify your email address",
@@ -73,7 +73,6 @@ class EmailService
                 </p>
             `
         });
-        return result;
     }
 
     async sendPasswordResetEmail(user, token)
@@ -115,6 +114,58 @@ class EmailService
             `
         })
 
+    }
+
+
+    async sendEmailUpdateConfirmation(user, newEmail, token)
+    {
+        const emailUpdationUrl =
+            `${process.env.APP_URL}/auth/confirm-email-change?token=${encodeURIComponent(token)}`;
+
+
+        await this.transporter.sendMail({
+            from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM_ADDRESS}>`,
+            to: newEmail,
+            subject: "Confirm your new email address",
+            text:
+                `Hi ${user.firstName},\n\n` +
+                `You requested to change the email address on your account to this address.\n\n` +
+                `Confirm this change using the link below:\n\n` +
+                `${confirmUrl}\n\n` +
+                `This link will expire in 24 hours.\n\n` +
+                `If you did not request this, you can safely ignore this email — your account email will not change.`,
+
+            html: `
+            <h2>Confirm your new email address</h2>
+            <p>Hi ${user.firstName},</p>
+            <p>
+                You requested to change the email address on your account to this address.
+                Confirm this change by clicking the button below.
+            </p>
+            <p>
+                    href="${emailUpdationUrl}"
+                    style="
+                        display: inline-block;
+                        padding: 10px 16px;
+                        background-color: #007bff;
+                        color: #ffffff;
+                        text-decoration: none;
+                        border-radius: 5px;
+                    "
+                >
+                    Confirm Email Change
+                </a>
+            </p>
+
+            <p>
+                This link will expire in 24 hours.
+            </p>
+
+            <p>
+                If you did not request this, you can safely ignore this email — your account email will not change.
+            </p>
+        `
+        });
     }
 }
 

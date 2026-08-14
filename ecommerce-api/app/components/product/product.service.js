@@ -1,6 +1,7 @@
-const { Product, Category } = require("ecommerce-data-model");
+const { Product, Category, ProductImage, sequelize } = require("ecommerce-data-model");
 const { NotFoundError, ConflictError } = require("../../lib/errors");
 const { Op, ValidationError } = require("sequelize");
+const { uploadToCloudinary, deleteFromCloudinary } = require("../../utils/cloudinary");
 
 
 const DEFAULT_PAGE_SIZE = 20
@@ -182,7 +183,7 @@ class ProductService
     {
         if (!files || files.length === 0)
         {
-            throw new ValidationError('no images provided')
+            throw new ValidationError('No images provided')
         }
 
         const product = await Product.findByPk(productId);
@@ -191,16 +192,38 @@ class ProductService
             throw new NotFoundError('Product not found');
         }
 
-        const imageData = files.map(file => ({
+        const uploadPromises = files.map(file => uploadToCloudinary(file.buffer, "products"));
+        const cloudinaryResults = await Promise.all(uploadPromises);
+        // const assetIds = await cloudinaryResults.forEach(result =>
+        // {
+        //     console.log(result.assetId);
+        // })
+        const imageData = files.map((file, i) => ({
             productId,
-            imageUrl: file.path,
-            fileName: file.originalame,
+            imageUrl: cloudinaryResults[i].url,
+            publicId: cloudinaryResults[i].publicId,
+            fileName: file.originalname,
             mimeType: file.mimetype,
             size: file.size
         }));
 
-        const createdImage = await productImage.bulkCreate(imageData)
+        const createdImages = await ProductImage.bulkCreate(imageData)
         return createdImages;
+    }
+
+    async deleteProductImage(publicId)
+    {
+        const image = await ProductImage.findOne({ where: { publicId } });
+        if (!image)
+        {
+            throw new NotFoundError('Image not found');
+        }
+        await sequelize.transaction(async (t) =>
+        {
+            await image.destroy();
+            await deleteFromCloudinary(publicId);
+        });
+        return null;
     }
 }
 

@@ -37,6 +37,42 @@
         "middlewares": []
     },
     {
+        "method": "POST",
+        "path": "/api/auth/verify-email",
+        "controller": "auth",
+        "action": "verifyEmail",
+        "middlewares": [
+            "authenticate"
+        ]
+    },
+    {
+        "method": "GET",
+        "path": "/api/auth/request-verification-email",
+        "controller": "auth",
+        "action": "requestVerificationEmail",
+        "middlewares": [
+            "authenticate"
+        ]
+    },
+    {
+        "method": "GET",
+        "path": "/api/auth/request-updation-email",
+        "controller": "auth",
+        "action": "requestUpdationEmail",
+        "middlewares": [
+            "authenticate"
+        ]
+    },
+    {
+        "method": "POST",
+        "path": "/api/auth/update-email",
+        "controller": "auth",
+        "action": "updateEmail",
+        "middlewares": [
+            "authenticate"
+        ]
+    },
+    {
         "method": "GET",
         "path": "/api/users/me",
         "controller": "user",
@@ -190,6 +226,17 @@
         ]
     },
     {
+        "method": "POST",
+        "path": "/api/admin/products/:productId/images",
+        "controller": "product",
+        "action": "uploadProductImages",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin",
+            "uploadMultipleImages"
+        ]
+    },
+    {
         "method": "PATCH",
         "path": "/api/admin/products/:productId",
         "controller": "product",
@@ -214,6 +261,16 @@
         "path": "/api/admin/products/:productId",
         "controller": "product",
         "action": "deleteProduct",
+        "middlewares": [
+            "authenticate",
+            "requireAdmin"
+        ]
+    },
+    {
+        "method": "DELETE",
+        "path": "/api/admin/products/:productId/images/:publicId/delete",
+        "controller": "product",
+        "action": "deleteProductImage",
         "middlewares": [
             "authenticate",
             "requireAdmin"

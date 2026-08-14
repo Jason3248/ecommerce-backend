@@ -69,13 +69,19 @@ class ProductController
         });
     }
 
-    async uploadImages(req, res)
+    async uploadProductImages(req, res)
     {
         const result = await this.service.uploadProductImages(req.params.productId, req.files);
         return res.status(201).json({
             success: true,
             data: result
         })
+    }
+
+    async deleteProductImage(req, res)
+    {
+        await this.service.deleteImage(req.params.publicId);
+        return null;
     }
 }
 

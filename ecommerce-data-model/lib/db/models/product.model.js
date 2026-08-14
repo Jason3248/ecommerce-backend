@@ -1,7 +1,9 @@
-const {DataTypes, Model} = require("sequelize");
+const { DataTypes, Model } = require("sequelize");
 
-class Product extends Model{
-    static initModel(sequelize){
+class Product extends Model
+{
+    static initModel(sequelize)
+    {
         Product.init(
             {
                 id: {
@@ -20,7 +22,8 @@ class Product extends Model{
                     validate: {
                         len: [2, 100]
                     },
-                    set(value){
+                    set(value)
+                    {
                         this.setDataValue("name", value.trim());
                     }
                 },
@@ -45,7 +48,7 @@ class Product extends Model{
                 },
                 imageUrl: {
                     type: DataTypes.STRING(500),
-                    allowNull:" true"
+                    allowNull: " true"
                 },
                 categoryId: {
                     type: DataTypes.UUID,
@@ -64,7 +67,8 @@ class Product extends Model{
         return Product;
     }
 
-    static associate(models){
+    static associate(models)
+    {
         Product.belongsTo(models.Category, {
             foreignKey: 'categoryId',
             as: 'category'
@@ -78,6 +82,11 @@ class Product extends Model{
         Product.hasMany(models.OrderItem, {
             foreignKey: 'productId',
             as: 'orderItems'
+        });
+
+        Product.hasMany(models.ProductImage, {
+            foreignKey: 'productId',
+            as: 'images'
         });
     }
 }

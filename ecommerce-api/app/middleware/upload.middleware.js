@@ -1,5 +1,6 @@
 const multer = require("multer");
 const { validationError, ValidationError } = require("../lib/errors");
+const { log } = require("winston");
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png'];
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
@@ -34,19 +35,29 @@ const uploadMultipleImages = (req, res, next) =>
         {
             if (err.code === 'LIMIT_UNEXPECTED_FILE')
             {
+                if (err.field && err.field !== 'images')
+                {
+                    return next(new ValidationError(
+                        `Unexpected field "${err.field}" — files must be sent under the field name "images".`
+                    ));
+                }
                 return next(new ValidationError(`Too many files. Maximum allowed is ${MAX_FILE_COUNT}.`));
+            }
+            if (err.code === 'LIMIT_FILE_SIZE')
+            {
+                return next(new ValidationError(
+                    `One or more files exceed the ${MAX_FILE_SIZE_BYTES / (1024 * 1024)}MB limit.`
+                ));
             }
             return next(new ValidationError(`Image upload error: ${err.message}`));
         }
-        if (err)
-        {
-            return next(err);
-        }
+        if (err) return next(err);
         if (!req.files || req.files.length === 0)
         {
-            return next(new ValidationError('no images provided'))
+            return next(new ValidationError('No images provided'));
         }
-        next()
+        next();
     });
+};
 
-}
+module.exports = uploadMultipleImages;

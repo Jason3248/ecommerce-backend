@@ -1,5 +1,6 @@
 const { Sequelize } = require("sequelize");
 const configs = require("../../config/database.js");
+const { initModel } = require("./user.model.js");
 
 const sequelize = new Sequelize(
     configs[process.env.NODE_ENV || "development"] || configs.development
@@ -16,6 +17,9 @@ const Payment = require("./payment.model.js").initModel(sequelize);
 const SystemConfig = require("./system-config.model.js").initModel(sequelize);
 const PasswordResetToken = require("./password-reset-token.model.js").initModel(sequelize);
 const EmailVerificationToken = require("./email-verification-token.model.js").initModel(sequelize);
+const ProductImage = require("./product-image.model.js").initModel(sequelize);
+const EmailUpdationToken = require("./email-updation-token.model.js").initModel(sequelize);
+
 
 const models = {
     User,
@@ -28,7 +32,9 @@ const models = {
     Payment,
     SystemConfig,
     PasswordResetToken,
-    EmailVerificationToken
+    EmailVerificationToken,
+    ProductImage,
+    EmailUpdationToken
 };
 
 Object.values(models).forEach(model => model.associate(models));

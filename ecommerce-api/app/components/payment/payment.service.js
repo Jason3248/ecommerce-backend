@@ -66,7 +66,6 @@ class PaymentService
         }
     }
 
-
     async handleWebhook(payload, headers)
     {
         if (!verifyWebhookSignature(headers))
@@ -133,11 +132,11 @@ class PaymentService
             if (cart)
             {
                 const orderItemIds = order.items.map(item => item.productId);
-                for (const itemId of orderItemIds)
+                for (const productId of orderItemIds)
                 {
                     await CartItem.destroy(
                         {
-                            where: { cartId: cart.id, productId: itemId },
+                            where: { cartId: cart.id, productId },
                             transaction: t
                         })
                 }

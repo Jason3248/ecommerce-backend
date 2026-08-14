@@ -1,6 +1,6 @@
 const path = require("path");
 const routes = require("./route.config.test.json");
-const middleware = require("../middleware/auth.middleware.js");
+const middleware = require("../middleware");
 module.exports = (app) =>
 {
     const controllers = new Map();
