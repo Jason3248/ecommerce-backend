@@ -6,6 +6,12 @@ const bcrypt = require("bcrypt");
 const SALT_ROUNDS = 10;
 class UserService
 {
+    #toSafeUser(userInstance)
+    {
+        const { id, name, email, role, isEmailVerified, isBlocked, createdAt } =
+            userInstance.toJSON ? userInstance.toJSON() : userInstance;
+        return { id, name, email, role, isEmailVerified, isBlocked, createdAt };
+    }
     async getProfile(userId)
     {
         const user = await User.findByPk(userId);
@@ -14,7 +20,7 @@ class UserService
         {
             throw new NotFoundError('User not found');
         }
-        return user;
+        return this.#toSafeUser(user);
 
     }
 
@@ -32,7 +38,7 @@ class UserService
         }
         const newHashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
         await user.update({ password: newHashedPassword });
-        return user;
+        return this.#toSafeUser(user);
     }
 
 
@@ -44,7 +50,7 @@ class UserService
             throw new NotFoundError('User not found');
         }
         await user.update({ firstName, lastName });
-        return user;
+        return this.#toSafeUser(user);
     }
 }
 

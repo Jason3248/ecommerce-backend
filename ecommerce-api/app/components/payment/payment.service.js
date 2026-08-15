@@ -1,6 +1,6 @@
 const { Payment, Order, sequelize, OrderItem, Cart, Product, CartItem } = require("ecommerce-data-model");
-const { NotFoundError, BusinessRuleError, InvalidOrderStateError } = require("../../lib/errors");
-const { createPaymentRequest, verifyWebhookSignature } = require("../../lib/payment-gateway/paymentGateway.js");
+const { NotFoundError, BusinessRuleError, InvalidOrderStateError, ConflictError, ValidationError } = require("../../lib/errors");
+const { createPaymentRequest, verifyWebhookSignature } = require("../../lib/payment-gateway/paymentGatewayHelper.js");
 
 const PAYABLE_STATES = ['PAYMENT_PENDING', 'PAYMENT_FAILED'];
 const DEFAULT_PAGE_SIZE = 20;
@@ -66,16 +66,108 @@ class PaymentService
         }
     }
 
-    async handleWebhook(payload, headers)
+    // async handleWebhook(payload, headers)
+    // {
+    //     if (!verifyWebhookSignature(headers))
+    //     {
+    //         throw new ValidationError('Invalid webhook signature');
+    //     }
+    //     const { gatewayReference, status } = payload;
+    //     if (!gatewayReference || !['SUCCESS', 'FAILED'].includes(status))
+    //     {
+    //         throw new ValidationError('Malformed webhook payload');
+    //     }
+    //     const payment = await Payment.findOne({
+    //         where: {
+    //             gatewayReference
+    //         }
+    //     });
+    //     if (!payment)
+    //     {
+    //         throw new NotFoundError('Payment with the gateway reference not available');
+    //     }
+    //     if (payment.status !== 'PENDING')
+    //     {
+    //         return null;
+    //     }
+    //     if (status === 'FAILED')
+    //     {
+    //         await sequelize.transaction(async (t) =>
+    //         {
+    //             await payment.update({ status: 'FAILED' }, { transaction: t });
+    //             await Order.update({ status: 'PAYMENT_FAILED' }, {
+    //                 where: {
+    //                     id: payment.orderId
+    //                 },
+    //                 transaction: t
+    //             });
+    //         });
+    //         return null;
+    //     }
+    //     const order = await Order.findByPk(payment.orderId, {
+    //         include: [
+    //             {
+    //                 model: OrderItem,
+    //                 as: 'items'
+    //             }
+    //         ]
+    //     });
+    //     if (!order)
+    //     {
+    //         throw new NotFoundError('Order not found for this payment');
+    //     }
+    //     const cart = await Cart.findOne({ where: { userId: payment.userId } });
+    //     await sequelize.transaction(async (t) =>
+    //     {
+    //         await payment.update({ status: 'SUCCESS', completedAt: new Date() }, { transaction: t });
+    //         await order.update({ status: 'PAID' }, { transaction: t });
+    //         for (const item of order.items)
+    //         {
+    //             await Product.decrement('stockQuantity', {
+    //                 by: item.quantity,
+    //                 where: { id: item.productId },
+    //                 transaction: t
+    //             });
+    //         }
+    //         if (cart)
+    //         {
+    //             const orderItemIds = order.items.map(item => item.productId);
+    //             for (const productId of orderItemIds)
+    //             {
+    //                 await CartItem.destroy(
+    //                     {
+    //                         where: { cartId: cart.id, productId },
+    //                         transaction: t
+    //                     })
+    //             }
+    //         }
+    //     });
+    //     return null;
+    // }
+
+    async handleWebhook(rawBody, headers)
     {
-        if (!verifyWebhookSignature(headers))
+        if (!verifyWebhookSignature(rawBody, headers['x-razorpay-signature']));
         {
             throw new ValidationError('Invalid webhook signature');
         }
-        const { gatewayReference, status } = payload;
-        if (!gatewayReference || !['SUCCESS', 'FAILED'].includes(status))
+        const payload = typeof rawBody === 'string' ? JSON.parse(rawBody) : rawBody;
+        const event = payload.event;
+        const paymentEntity = payload.payload?.payment?.entity;
+        const orderEntity = payload.payload?.order?.entity;
+
+        const gatewayReference = paymentEntity?.order_id || orderEntity?.id;
+        let status = null;
+        if (event === 'payment.captured' || event === 'order.paid')
         {
-            throw new ValidationError('Malformed webhook payload');
+            status = 'SUCCESS';
+        } else if (event === 'payment.failed')
+        {
+            status = 'FAILED';
+        }
+        if (!status || !gatewayReference)
+        {
+            return { ignored: true };
         }
         const payment = await Payment.findOne({
             where: {
@@ -144,7 +236,6 @@ class PaymentService
         });
         return null;
     }
-
     async getMyPaymentById(userId, paymentId)
     {
         const payment = await Payment.findOne({ where: { id: paymentId, userId } });

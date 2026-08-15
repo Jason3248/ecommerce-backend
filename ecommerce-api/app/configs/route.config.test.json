@@ -124,7 +124,7 @@
         "action": "listCategories",
         "middlewares": [
             "authenticate",
-            "requireAdmin"
+            "authorize"
         ]
     },
     {
@@ -134,7 +134,7 @@
         "action": "getById",
         "middlewares": [
             "authenticate",
-            "requireAdmin"
+            "authorize"
         ]
     },
     {
@@ -144,7 +144,7 @@
         "action": "createCategory",
         "middlewares": [
             "authenticate",
-            "requireAdmin"
+            "authorize"
         ]
     },
     {
@@ -154,7 +154,7 @@
         "action": "updateCategory",
         "middlewares": [
             "authenticate",
-            "requireAdmin"
+            "authorize"
         ]
     },
     {
@@ -164,7 +164,7 @@
         "action": "deleteCategory",
         "middlewares": [
             "authenticate",
-            "requireAdmin"
+            "authorize"
         ]
     },
     {
@@ -174,7 +174,7 @@
         "action": "restoreCategory",
         "middlewares": [
             "authenticate",
-            "requireAdmin"
+            "authorize"
         ]
     },
     {
@@ -202,7 +202,7 @@
         "action": "listProducts",
         "middlewares": [
             "authenticate",
-            "requireAdmin"
+            "authorize"
         ]
     },
     {
@@ -212,7 +212,7 @@
         "action": "getById",
         "middlewares": [
             "authenticate",
-            "requireAdmin"
+            "authorize"
         ]
     },
     {
@@ -222,7 +222,7 @@
         "action": "getProductImages",
         "middlewares": [
             "authenticate",
-            "requireAdmin"
+            "authorize"
         ]
     },
     {
@@ -232,7 +232,7 @@
         "action": "createProduct",
         "middlewares": [
             "authenticate",
-            "requireAdmin"
+            "authorize"
         ]
     },
     {
@@ -242,7 +242,7 @@
         "action": "uploadProductImages",
         "middlewares": [
             "authenticate",
-            "requireAdmin",
+            "authorize",
             "uploadMultipleImages"
         ]
     },
@@ -253,7 +253,7 @@
         "action": "getProductImages",
         "middlewares": [
             "authenticate",
-            "requireAdmin"
+            "authorize"
         ]
     },
     {
@@ -263,7 +263,7 @@
         "action": "updateProduct",
         "middlewares": [
             "authenticate",
-            "requireAdmin"
+            "authorize"
         ]
     },
     {
@@ -273,7 +273,7 @@
         "action": "updateInventory",
         "middlewares": [
             "authenticate",
-            "requireAdmin"
+            "authorize"
         ]
     },
     {
@@ -283,7 +283,7 @@
         "action": "deleteProduct",
         "middlewares": [
             "authenticate",
-            "requireAdmin"
+            "authorize"
         ]
     },
     {
@@ -293,7 +293,7 @@
         "action": "deleteProductImage",
         "middlewares": [
             "authenticate",
-            "requireAdmin"
+            "authorize"
         ]
     },
     {
@@ -303,7 +303,7 @@
         "action": "restoreProduct",
         "middlewares": [
             "authenticate",
-            "requireAdmin"
+            "authorize"
         ]
     },
     {
@@ -385,7 +385,7 @@
         "action": "listOrders",
         "middlewares": [
             "authenticate",
-            "requireAdmin"
+            "authorize"
         ]
     },
     {
@@ -395,7 +395,7 @@
         "action": "getById",
         "middlewares": [
             "authenticate",
-            "requireAdmin"
+            "authorize"
         ]
     },
     {
@@ -405,7 +405,7 @@
         "action": "updateOrderStatus",
         "middlewares": [
             "authenticate",
-            "requireAdmin"
+            "authorize"
         ]
     },
     {
@@ -419,7 +419,7 @@
     },
     {
         "method": "POST",
-        "path": "/api/orders/:orderId/payments/webhook",
+        "path": "/api/orders/payments/webhook",
         "controller": "payment",
         "action": "handleWebhook",
         "middlewares": []
@@ -440,7 +440,7 @@
         "action": "listPayments",
         "middlewares": [
             "authenticate",
-            "requireAdmin"
+            "authorize"
         ]
     },
     {
@@ -450,7 +450,7 @@
         "action": "getById",
         "middlewares": [
             "authenticate",
-            "requireAdmin"
+            "authorize"
         ]
     },
     {
@@ -460,7 +460,7 @@
         "action": "createAdmin",
         "middlewares": [
             "authenticate",
-            "requireAdmin"
+            "authorize"
         ]
     },
     {
@@ -470,7 +470,7 @@
         "action": "listUsers",
         "middlewares": [
             "authenticate",
-            "requireAdmin"
+            "authorize"
         ]
     },
     {
@@ -480,7 +480,7 @@
         "action": "getById",
         "middlewares": [
             "authenticate",
-            "requireAdmin"
+            "authorize"
         ]
     },
     {
@@ -490,7 +490,7 @@
         "action": "blockUser",
         "middlewares": [
             "authenticate",
-            "requireAdmin"
+            "authorize"
         ]
     },
     {
@@ -500,7 +500,7 @@
         "action": "unblockUser",
         "middlewares": [
             "authenticate",
-            "requireAdmin"
+            "authorize"
         ]
     },
     {
@@ -510,7 +510,7 @@
         "action": "deleteUser",
         "middlewares": [
             "authenticate",
-            "requireAdmin"
+            "authorize"
         ]
     },
     {
@@ -520,7 +520,7 @@
         "action": "restoreUser",
         "middlewares": [
             "authenticate",
-            "requireAdmin"
+            "authorize"
         ]
     },
     {
@@ -530,7 +530,7 @@
         "action": "listConfig",
         "middlewares": [
             "authenticate",
-            "requireAdmin"
+            "authorize"
         ]
     }
 ]

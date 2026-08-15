@@ -11,8 +11,6 @@ module.exports = (app) =>
         if (!controllers.has(controllerPath))
         {
             const Controller = require(controllerPath);
-            console.log("Controller:", Controller);
-            console.log("Type:", typeof Controller);
             controllers.set(controllerPath, new Controller());
         }
         const controller = controllers.get(controllerPath);

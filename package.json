@@ -5,5 +5,8 @@
   "workspaces": [
     "ecommerce-api",
     "ecommerce-data-model"
-  ]
+  ],
+  "dependencies": {
+    "localtunnel": "^2.0.2"
+  }
 }

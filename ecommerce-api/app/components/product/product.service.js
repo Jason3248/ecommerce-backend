@@ -206,10 +206,6 @@ class ProductService
 
         const uploadPromises = files.map(file => uploadToCloudinary(file.buffer, "products"));
         const cloudinaryResults = await Promise.all(uploadPromises);
-        // const assetIds = await cloudinaryResults.forEach(result =>
-        // {
-        //     console.log(result.assetId);
-        // })
         const imageData = files.map((file, i) => ({
             productId,
             imageUrl: cloudinaryResults[i].url,

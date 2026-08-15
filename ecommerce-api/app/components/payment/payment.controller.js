@@ -20,7 +20,7 @@ class PaymentController
 
     async handleWebhook(req, res)
     {
-        await this.service.handleWebhook(req.body, req.headers);
+        await this.service.handleWebhook(req.rawBody, req.headers);
         return res.status(200).json({
             success: true,
             data: null

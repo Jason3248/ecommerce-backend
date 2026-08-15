@@ -9,7 +9,14 @@ const errorHandler = require("./middleware/error.middleware.js");
 const app = express();
 app.use(helmet());
 app.use(cors());
-app.use(express.json());
+// In your server.js / app.js
+app.use(express.json({
+    verify: (req, res, buf) =>
+    {
+        // Store the raw buffer/string on the request object
+        req.rawBody = buf.toString('utf8');
+    }
+}));
 loadRoutes(app);
 app.use(notFoundHandler);
 app.use(errorHandler);

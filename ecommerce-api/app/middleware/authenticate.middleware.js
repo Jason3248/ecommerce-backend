@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { UnauthorizedError, ForbiddenError } = require("../lib/errors");
+const { UnauthorizedError, ForbiddenError } = require("../lib/errors/index.js");
 const { User } = require("ecommerce-data-model");
 require('dotenv').config(__dirname, '../../../.env');
 const logger = require("../configs/logger.js")
@@ -38,22 +38,6 @@ const authenticate = async (req, res, next) =>
     next();
 }
 
-const requireAdmin = (req, res, next) =>
-{
-    logger.info(req.user);
-    if (!req.user)
-    {
-        throw new UnauthorizedError('Authentication required');
-    }
-    if (req.user.role !== "ADMIN")
-    {
-        throw new ForbiddenError('Admin access required');
-    }
-    next();
-}
 
 
-module.exports = {
-    authenticate,
-    requireAdmin
-}
+module.exports = authenticate;

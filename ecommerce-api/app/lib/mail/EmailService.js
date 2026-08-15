@@ -79,7 +79,7 @@ class EmailService
     {
         const passwordResetUrl = `${process.env.APP_URL}/auth/reset-password?token=${encodeURIComponent(token)}`;
         await this.transporter.sendMail({
-            from: process.env.EMAIL_FROM_NAME,
+            from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM_ADDRESS}>`,
             to: user.email,
             subject: 'Reset Your Password',
             text:
@@ -121,8 +121,6 @@ class EmailService
     {
         const emailUpdationUrl =
             `${process.env.APP_URL}/auth/confirm-email-change?token=${encodeURIComponent(token)}`;
-
-
         await this.transporter.sendMail({
             from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM_ADDRESS}>`,
             to: newEmail,
