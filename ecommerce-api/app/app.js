@@ -7,9 +7,8 @@ const errorHandler = require("./middleware/error.middleware.js");
 
 
 const app = express();
-app.use(helmet());
+// app.use(helmet());
 app.use(cors());
-// In your server.js / app.js
 app.use(express.json({
     verify: (req, res, buf) =>
     {

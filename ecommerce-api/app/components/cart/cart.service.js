@@ -96,7 +96,7 @@ class CartService
     }
 
 
-    async updateItemQuantity(userId, itemId, { quantity })
+    async updateItemQuantity(userId, itemId, { quantity } = {})
     {
         const cart = await Cart.findOne({ where: { userId } });
         const cartItem = await CartItem.findOne({ where: { id: itemId, cartId: cart.id } });

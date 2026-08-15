@@ -1,7 +1,7 @@
 const { Payment, Order, sequelize, OrderItem, Cart, Product, CartItem } = require("ecommerce-data-model");
 const { NotFoundError, BusinessRuleError, InvalidOrderStateError, ConflictError, ValidationError } = require("../../lib/errors");
 const { createPaymentRequest, verifyWebhookSignature } = require("../../lib/payment-gateway/paymentGatewayHelper.js");
-
+const {Op} = require("sequelize");
 const PAYABLE_STATES = ['PAYMENT_PENDING', 'PAYMENT_FAILED'];
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 30;
@@ -19,7 +19,8 @@ class PaymentService
         if (pageSize > MAX_PAGE_SIZE) pageSize = MAX_PAGE_SIZE;
         return { page, pageSize, offset: (page - 1) * pageSize, limit: pageSize };
     }
-    async initiatePayment(userId, orderId, { method })
+
+    async initiatePayment(userId, orderId)
     {
         const order = await Order.findOne({
             where: {
@@ -57,7 +58,7 @@ class PaymentService
             amount: order.totalAmount
         });
 
-        await payment.update({ gatewayReference, method });
+        await payment.update({ gatewayReference });
         return {
             paymentId: payment.id,
             gatewayReference,
@@ -147,7 +148,7 @@ class PaymentService
 
     async handleWebhook(rawBody, headers)
     {
-        if (!verifyWebhookSignature(rawBody, headers['x-razorpay-signature']));
+        if (!verifyWebhookSignature(rawBody, headers['x-razorpay-signature']))
         {
             throw new ValidationError('Invalid webhook signature');
         }
@@ -155,8 +156,9 @@ class PaymentService
         const event = payload.event;
         const paymentEntity = payload.payload?.payment?.entity;
         const orderEntity = payload.payload?.order?.entity;
-
         const gatewayReference = paymentEntity?.order_id || orderEntity?.id;
+        const method = payload.payload?.payment?.entity?.method.toUpperCase();
+        console.log(gatewayReference);
         let status = null;
         if (event === 'payment.captured' || event === 'order.paid')
         {
@@ -211,7 +213,7 @@ class PaymentService
         const cart = await Cart.findOne({ where: { userId: payment.userId } });
         await sequelize.transaction(async (t) =>
         {
-            await payment.update({ status: 'SUCCESS', completedAt: new Date() }, { transaction: t });
+            await payment.update({ status: 'SUCCESS', method, completedAt: new Date() }, { transaction: t });
             await order.update({ status: 'PAID' }, { transaction: t });
             for (const item of order.items)
             {
@@ -260,7 +262,7 @@ class PaymentService
     {
         const { page, pageSize, offset, limit } = this.#pagination(query);
         const where = {};
-        if (query.status) where.status = query.status;
+        if (query.status) where.status = query.status.toUpperCase();
 
         const { rows, count } = await Payment.findAndCountAll({
             where,

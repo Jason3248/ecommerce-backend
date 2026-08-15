@@ -66,6 +66,7 @@ class OrderService
             const product = item.product;
             if (!product)
             {
+                //should i just call destroy on the cart item?
                 throw new BusinessRuleError(`The product ${product.name} is no longer available for purchase`);
             }
             if (item.quantity > product.stockQuantity)
@@ -212,7 +213,7 @@ class OrderService
     {
         const { page, pageSize, limit, offset } = this.#pagination(query);
         const where = {};
-        if (query.status) where.status = { [Op.ilike]: `%${query.status}%` }
+        if (query.status) where.status =  query.status.toUpperCase();
         const { rows, count } = await Order.findAndCountAll({
             where,
             include: [

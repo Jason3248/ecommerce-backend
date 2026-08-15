@@ -1,6 +1,7 @@
 const path = require("path");
 const routes = require("./route.config.test.json");
 const middleware = require("../middleware");
+const validateBody = require("../middleware/validate.middleware.js");
 module.exports = (app) =>
 {
     const controllers = new Map();

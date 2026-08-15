@@ -1,6 +1,6 @@
 const { Product, Category, ProductImage, sequelize } = require("ecommerce-data-model");
-const { NotFoundError, ConflictError } = require("../../lib/errors");
-const { Op, ValidationError } = require("sequelize");
+const { NotFoundError, ConflictError, BusinessRuleError, ValidationError } = require("../../lib/errors");
+const { Op } = require("sequelize");
 const { uploadToCloudinary, deleteFromCloudinary } = require("../../utils/cloudinary");
 const logger = require("../../configs/logger");
 
@@ -94,7 +94,19 @@ class ProductService
 
     async getById(productId, role)
     {
-        const product = await Product.findByPk(productId, { paranoid: role !== 'ADMIN' });
+        const isAdmin = role === 'ADMIN';
+        const product = await Product.findOne({
+            where: {id: productId},
+            include: [
+                {
+                    model: ProductImage,
+                    as: 'images',
+                    required: false,
+                    paranoid: false
+                }
+            ],
+            paranoid: !isAdmin
+        })
         if (!product)
         {
             throw new NotFoundError('Product not found');
@@ -104,16 +116,16 @@ class ProductService
 
     async createProduct({ sku, name, description, price, stockQuantity, categoryId })
     {
-        const category = await Category.findByPk(categoryId);
-        if (!category)
-        {
-            throw new NotFoundError('Category not found');
+        if(!sku){
+            throw new BusinessRuleError('A Product must have a unique sku compulsorily');
         }
-
-        const existingSku = await Product.findOne({ where: { sku } });
-        if (existingSku)
+        const existing = await Product.findOne({ where: { sku } });
+        if (existing)
         {
             throw new ConflictError('A product with this SKU already exists');
+        }
+        if(!categoryId){
+            throw new BusinessRuleError('Product must belong to some existing category');
         }
         const createdProduct = await Product.create({
             sku, name, description, price, stockQuantity, categoryId
@@ -121,12 +133,12 @@ class ProductService
         return createdProduct;
     }
 
-    async updateProduct(productId, { name, description, price, categoryId })
+    async updateProduct(productId, { name, description, price, categoryId } = {})
     {
-        if (name === undefined &&
-            description === undefined &&
-            categoryId === undefined &&
-            price === undefined
+        if (!name &&
+            !description &&
+            !categoryId &&
+            !price
         )
         {
             throw new ValidationError('At least one updatable field must be provided');
@@ -146,25 +158,29 @@ class ProductService
     }
 
 
-    async updateInventory(productId, { stockQuantity })
+    async updateInventory(productId, { stockQuantity } = {})
     {
+        if(!stockQuantity){
+            throw new ValidationError('stock quantity must be provided');
+        }
         const product = await Product.findByPk(productId);
         if (!product)
         {
             throw new NotFoundError('Product not found');
         }
-        await product.update({
-            ...(stockQuantity !== undefined && { stockQuantity })
-        });
+        await product.update( { stockQuantity })
         return product;
     }
 
     async deleteProduct(productId)
     {
-        const product = await Product.findByPk(productId);
+        const product = await Product.findByPk(productId, {paranoid: false});
         if (!product)
         {
             throw new NotFoundError('Product not found');
+        }
+        if(product.deletedAt){
+            throw new ValidationError('The product is already deleted');
         }
         await product.destroy();
 
@@ -181,11 +197,11 @@ class ProductService
         {
             throw new ConflictError('Product is not deleted');
         }
-        const skuConflict = await Product.findOne({ where: { sku: product.sku } })
-        if (skuConflict)
-        {
-            throw new ConflictError(`Cannot restore. another product already uses sku`);
-        }
+        // const skuConflict = await Product.findOne({ where: { sku: product.sku } })
+        // if (skuConflict)
+        // {
+        //     throw new ConflictError(`Cannot restore. another product already uses sku`);
+        // }
         await product.restore();
         return product;
     }

@@ -92,7 +92,7 @@ class ProductController
         await this.service.deleteProductImage(req.params);
         return res.status(201).json({
             success: true,
-            data: result
+            data: null
         });
     }
 }

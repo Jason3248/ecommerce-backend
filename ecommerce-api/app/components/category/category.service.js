@@ -1,5 +1,5 @@
 const { Category } = require("ecommerce-data-model");
-const { NotFoundError } = require("../../lib/errors");
+const { NotFoundError, ConflictError, BusinessRuleError, ValidationError } = require("../../lib/errors");
 
 const SORTABLE_FIELDS = {
     name_asc: ['name', 'ASC'],
@@ -31,7 +31,7 @@ class CategoryService
 
     async createCategory({ name })
     {
-        const existingCategory = await Category.findOne({ where: { name } });
+        const existingCategory = await Category.findOne({ where: { name } , paranoid: false});
         if (existingCategory)
         {
             throw new ConflictError('Category with this name already exists');
@@ -40,9 +40,12 @@ class CategoryService
         return createdCategory;
     }
 
-    async updateCategory(categoryId, { name })
+    async updateCategory(categoryId, { name } = {})
     {
-        const category = await Category.findByPk(categoryId);
+        if(!name){
+            throw new ValidationError('name must be provided');
+        }
+        const category = await Category.findByPk(categoryId, {paranoid: false});
         if (!category)
         {
             throw new NotFoundError('Category not found');
@@ -55,17 +58,20 @@ class CategoryService
                 throw new ConflictError('A category with this name already exists');
             }
         }
-        await category.update({ ...(name !== undefined && { name }) });
+        await category.update({ name }) ;
         return category;
     }
 
 
     async deleteCategory(categoryId)
     {
-        const category = await Category.findByPk(categoryId);
+        const category = await Category.findByPk(categoryId, {paranoid: false});
         if (!category)
         {
             throw new NotFoundError('Category not found');
+        }
+        if(category.deletedAt){
+            throw new BusinessRuleError('Category is already deleted');
         }
         // if (categoy)
         await category.destroy();
@@ -78,6 +84,9 @@ class CategoryService
         if (!category)
         {
             throw new NotFoundError('Category not found');
+        }
+        if(!category.deletedAt){
+            throw new BusinessRuleError('Category is not deleted');
         }
         await category.restore();
         return category;

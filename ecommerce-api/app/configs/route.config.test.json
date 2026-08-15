@@ -4,14 +4,16 @@
         "path": "/api/auth/register",
         "controller": "auth",
         "action": "register",
-        "middlewares": []
+        "middlewares": [],
+        "validate": "registerSchema"
     },
     {
         "method": "POST",
         "path": "/api/auth/login",
         "controller": "auth",
         "action": "login",
-        "middlewares": []
+        "middlewares": [],
+        "validate": "loginSchema"
     },
     {
         "method": "POST",
@@ -27,14 +29,16 @@
         "path": "/api/auth/forgot-password",
         "controller": "auth",
         "action": "forgotPassword",
-        "middlewares": []
+        "middlewares": [],
+        "validate": "forgotPasswordSchema"
     },
     {
         "method": "POST",
         "path": "/api/auth/reset-password",
         "controller": "auth",
         "action": "resetPassword",
-        "middlewares": []
+        "middlewares": [],
+        "validate": "resetPasswordSchema"
     },
     {
         "method": "POST",
@@ -233,7 +237,8 @@
         "middlewares": [
             "authenticate",
             "authorize"
-        ]
+        ],
+        "validate": "createProductSchema"
     },
     {
         "method": "POST",
@@ -264,7 +269,8 @@
         "middlewares": [
             "authenticate",
             "authorize"
-        ]
+        ],
+        "validate": "updateProductSchema"
     },
     {
         "method": "PATCH",
@@ -274,7 +280,8 @@
         "middlewares": [
             "authenticate",
             "authorize"
-        ]
+        ],
+        "validate": "updateInventorySchema"
     },
     {
         "method": "DELETE",
@@ -322,7 +329,8 @@
         "action": "addItem",
         "middlewares": [
             "authenticate"
-        ]
+        ],
+        "validate": "addItemSchema"
     },
     {
         "method": "PATCH",
@@ -331,7 +339,8 @@
         "action": "updateItemQuantity",
         "middlewares": [
             "authenticate"
-        ]
+        ],
+        "validate": "updateItemQuantitySchema"
     },
     {
         "method": "DELETE",
@@ -531,6 +540,14 @@
         "middlewares": [
             "authenticate",
             "authorize"
+        ]
+    },
+        {
+        "method": "GET",
+        "path": "/api/pay/:orderId",
+        "controller": "payment",
+        "action": "getPaymentModal",
+        "middlewares": [
         ]
     }
 ]

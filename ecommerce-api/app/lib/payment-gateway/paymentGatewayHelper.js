@@ -2,7 +2,9 @@ const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const logger = require("../../configs/logger.js");
 const path = require("path");
-require("dotenv").config({ path: path.resolve(__dirname, '../../../../env') })
+require("dotenv").config({ path: path.resolve(__dirname, '../../../../env') });
+
+
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET
@@ -16,22 +18,20 @@ const createPaymentRequest = async ({ orderId, amount }) =>
         const options = {
             amount: amountInSubUnits,
             currency: 'INR',
-            receipt: `rcpt_${orderId}`.slice(0, 40), // Razorpay receipt max length is 40 chars
+            receipt: `rcpt_${orderId}`.slice(0, 40),
             notes: {
-                internalOrderId: orderId.toString(),
+                internalOrderId: orderId
             },
         };
 
         const razorpayOrder = await razorpay.orders.create(options);
         logger.info(
-            `Created Razorpay order for internal order ${orderId}, ` +
+            `Created Razorpay order for order ${orderId}, ` +
             `amount ${amount} (${amountInSubUnits} paise) -> ${razorpayOrder.id}`
         );
         return {
-            gatewayReference: razorpayOrder.id, // e.g., 'order_EKwxwAgItmmGAv'
-            // For backend-only API testing, Razorpay Checkout uses the order ID directly,
-            // but we provide a consistent return object for your service:
-            redirectUrl: `https://api.razorpay.com/v1/checkout/public?order_id=${razorpayOrder.id}`
+            gatewayReference: razorpayOrder.id,
+            redirectUrl: `http://localhost:${process.env.PORT || 3000}/api/pay/${razorpayOrder.id}`
         };
     } catch (error)
     {
@@ -49,13 +49,18 @@ const verifyWebhookSignature = (rawBody, signature) =>
         logger.warn('RAZORPAY_WEBHOOK_SECRET not set, skipping verification.');
         return true;
     }
+    // console.log(signature);
+    // console.log(rawBody);
     if (!signature || !rawBody)
     {
         return false;
     }
-    const expectedSignature = crypto.createHmac('sha256', configuredSecret).update(rawBody).digest('hex');
-
-    return expectedSignature === signature;
+try {
+        return Razorpay.validateWebhookSignature(rawBody, signature, configuredSecret);
+    } catch (err) {
+        logger.error(`Signature validation failed: ${err.message}`);
+        return false;
+    }
 }
 
 module.exports = {
