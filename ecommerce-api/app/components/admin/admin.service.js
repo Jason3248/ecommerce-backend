@@ -36,19 +36,19 @@ class AdminService
         const where = {};
         if (query.firstName)
         {
-            where.name = { [Op.ilike]: `%${query.name}%` }
+            where.firstName = { [Op.iLike]: `%${query.firstName}%` }
         }
         if (query.lastName)
         {
-            where.sku = { [Op.ilike]: `%${query.sku}%` }
+            where.lastName = { [Op.iLike]: `%${query.lastName}%` }
         }
         if (query.role)
         {
-            where.sku = { [Op.ilike]: `%${query.role}%` }
+            where.role = query.role.toUpperCase()
         }
         if (query.isBlocked)
         {
-            where.isBlocked = query.isBlocked
+            where.isBlocked = String(query.isBlocked).toLowerCase() === 'true';
         }
         return where;
     }
@@ -69,7 +69,8 @@ class AdminService
             where,
             limit,
             offset,
-            order
+            order,
+            paranoid: false
         });
         return {
             rows: rows.map(user => this.#toSafeUser(user)),
@@ -84,7 +85,7 @@ class AdminService
 
     async getById(userId)
     {
-        const user = await User.findByPk(userId);
+        const user = await User.findByPk(userId, {paranoid: false});
         if (!user)
         {
             throw new NotFoundError('User not found');
@@ -138,7 +139,7 @@ class AdminService
         {
             throw new NotFoundError('User not found');
         }
-        if (user.isBlocked)
+        if (user.deletedAt)
         {
             throw new ForbiddenError('This user has been already deleted')
         }
@@ -175,8 +176,11 @@ class AdminService
         return configs;
     }
 
-    async updateConfig(key, { value })
+    async createOrUpdateConfig({key,  value } = {})
     {
+        if(!key || !value){
+            throw new ValidationError("Config Key and its Value must be provided");
+        }
         const existing = await SystemConfig.findOne({ where: { key } });
         if (existing)
         {
@@ -201,7 +205,7 @@ class AdminService
             password: hashedPassword,
             role: 'ADMIN'
         });
-        return this.#toSafeUser(user);
+        return this.#toSafeUser(admin);
     }
 }
 

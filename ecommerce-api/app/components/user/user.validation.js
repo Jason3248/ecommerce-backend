@@ -1,7 +1,8 @@
 const { z } = require("zod");
 
 const updateProfileSchema = z.object({
-    name: z.string().min(2).max(120)
+    firstName: z.string().min(2).max(120).optional(),
+    lastName: z.string().min(2).max(120).optional()
 });
 
 const changePasswordSchema = z.object({

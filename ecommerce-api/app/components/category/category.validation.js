@@ -5,5 +5,10 @@ const createCategorySchema = z.object({
 });
 
 const updateCategorySchema = z.object({
-    name: z.string().min(2).max(100).optional()
+    name: z.string().min(2).max(100)
 });
+
+module.exports = {
+    createCategorySchema,
+    updateCategorySchema
+}

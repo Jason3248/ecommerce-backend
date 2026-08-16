@@ -18,7 +18,7 @@ const updateProductSchema = z.object({
 })
 
 const updateInventorySchema = z.object({
-    stockQuantity: z.number().int().min(0).optional()
+    stockQuantity: z.number().int().min(0)
 })
 
 module.exports = { createProductSchema, updateProductSchema, updateInventorySchema }

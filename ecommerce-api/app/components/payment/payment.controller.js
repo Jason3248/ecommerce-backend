@@ -68,7 +68,7 @@ class PaymentController
                 const rzp = new Razorpay({
                 key: "${process.env.RAZORPAY_KEY_ID}",
                 order_id: "${orderId}",
-                name: "Dev Store",
+                name: "Ecommerce",
                 handler: (res) => alert("Payment complete: " + res.razorpay_payment_id)
                 });
                 window.onload = () => rzp.open();

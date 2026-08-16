@@ -35,11 +35,11 @@ class ProductService
         const where = {};
         if (query.name)
         {
-            where.name = { [Op.ilike]: `%${query.name}%` }
+            where.name = { [Op.iLike]: `%${query.name}%` }
         }
         if (query.sku)
         {
-            where.sku = { [Op.ilike]: `%${query.sku}%` }
+            where.sku = { [Op.iLike]: `%${query.sku}%` }
         }
         if (query.categoryId)
         {
@@ -241,25 +241,19 @@ class ProductService
         return images;
     }
 
-    async deleteProductImage({ productId, imageId })
+    async deleteProductImage({ productId, imageId } = {})
     {
         logger.info(imageId);
-
         const image = await ProductImage.findOne({
             where: { id: imageId, productId }
         });
-
         if (!image)
         {
             throw new NotFoundError('Image not found');
         }
-
         const publicId = image.publicId;
-
         await image.destroy();
-
         await deleteFromCloudinary(publicId);
-
         return null;
     }
 }

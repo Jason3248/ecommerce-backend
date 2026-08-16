@@ -1,10 +1,6 @@
 const { Category } = require("ecommerce-data-model");
 const { NotFoundError, ConflictError, BusinessRuleError, ValidationError } = require("../../lib/errors");
 
-const SORTABLE_FIELDS = {
-    name_asc: ['name', 'ASC'],
-    name_desc: ['name', 'DESC'],
-}
 
 const DEFAULT_SORT = ['name', 'ASC'];
 
@@ -13,7 +9,7 @@ class CategoryService
 
     async listCategories(role)
     {
-        const categories = await Category.findAll({ paranoid: role !== 'ADMIN' });
+        const categories = await Category.findAll({ order: [DEFAULT_SORT], paranoid: role !== 'ADMIN' });
         return categories;
     }
 

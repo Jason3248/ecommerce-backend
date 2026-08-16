@@ -1,5 +1,5 @@
 const { Cart, CartItem, SystemConfig, Product } = require("ecommerce-data-model");
-const { NotFoundError, ForbiddenError, OutOfStockError, BusinessRuleError } = require("../../lib/errors");
+const { NotFoundError, ForbiddenError, OutOfStockError, BusinessRuleError, ValidationError } = require("../../lib/errors");
 const logger = require("../../configs/logger.js");
 
 class CartService
@@ -98,6 +98,9 @@ class CartService
 
     async updateItemQuantity(userId, itemId, { quantity } = {})
     {
+        if(!quantity){
+            throw new ValidationError('New cartitem quantity must be provided');
+        }
         const cart = await Cart.findOne({ where: { userId } });
         const cartItem = await CartItem.findOne({ where: { id: itemId, cartId: cart.id } });
         if (!cartItem)

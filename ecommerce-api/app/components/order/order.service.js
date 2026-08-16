@@ -264,8 +264,11 @@ class OrderService
         return order;
     }
 
-    async updateOrderStatus(orderId, { status })
+    async updateOrderStatus(orderId, { status } = {})
     {
+        if(!status){
+            throw new ValidationError("order status must be provided for updation");
+        }
         const order = await Order.findByPk(orderId);
         if (!order)
         {
@@ -276,7 +279,7 @@ class OrderService
         {
             throw new BusinessRuleError('Invalid order status transition');
         }
-        await order.update({ status });
+        await order.update({ status: status.toUpperCase() });
         return order;
     }
 

@@ -1,5 +1,5 @@
 const { User } = require("ecommerce-data-model");
-const { NotFoundError, UnauthorizedError } = require("../../lib/errors");
+const { NotFoundError, UnauthorizedError, ValidationError } = require("../../lib/errors");
 const logger = require("../../configs/logger");
 const bcrypt = require("bcrypt");
 
@@ -8,9 +8,9 @@ class UserService
 {
     #toSafeUser(userInstance)
     {
-        const { id, name, email, role, isEmailVerified, isBlocked, createdAt } =
+        const { id, firstName, lastName,  email, role, isEmailVerified, isBlocked, createdAt } =
             userInstance.toJSON ? userInstance.toJSON() : userInstance;
-        return { id, name, email, role, isEmailVerified, isBlocked, createdAt };
+        return { id, firstName, lastName,  email, role, isEmailVerified, isBlocked, createdAt };
     }
     async getProfile(userId)
     {
@@ -42,8 +42,12 @@ class UserService
     }
 
 
-    async updateProfile(userId, { firstName, lastName })
+    async updateProfile(userId, { firstName, lastName } = {})
     {
+        logger.info(firstName)
+        if(!firstName && !lastName){
+            throw new ValidationError('Please provide at least one name field');
+        }
         const user = await User.findByPk(userId);
         if (!user)
         {

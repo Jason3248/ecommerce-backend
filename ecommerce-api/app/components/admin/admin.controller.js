@@ -48,9 +48,9 @@ class AdminController
         res.status(200).json({ success: true, data: result });
     };
 
-    async updateConfig(req, res)
+    async createOrUpdateConfig(req, res)
     {
-        const result = await this.service.updateConfig(req.params.key, req.body);
+        const result = await this.service.createOrUpdateConfig(req.body);
         res.status(200).json({ success: true, data: result });
     };
 

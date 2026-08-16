@@ -68,9 +68,9 @@ class AuthService
         return this.#toSafeUser(user);
     }
 
-    async login({ email, password })
+    async login({ email, password } = {})
     {
-        const user = await User.findOne({ where: { email } });
+        const user = await User.findOne({ where: { email }, paranoid: false });
         if (!user)
         {
             logger.warn('Login failed: no account for this email');
@@ -80,6 +80,9 @@ class AuthService
         {
             logger.warn('Login failed: account is blocked', { userId: user.id });
             throw new ForbiddenError('The account has been blocked');
+        }
+        if(user.deletedAt){
+            throw new ForbiddenError('This account has been deleted. Please contact admin');
         }
         const passwordMatch = await bcrypt.compare(password, user.password);
         if (!passwordMatch)
@@ -111,6 +114,9 @@ class AuthService
 
     async forgotPassword({ email })
     {
+        if(!email){
+            throw new ValidationError('Please provide a valid and registered email ID')
+        }
         const user = await User.findOne({ where: { email } });
         if (!user)
         {
@@ -167,7 +173,6 @@ class AuthService
             throw new ValidationError('Verification token is required');
         }
         const hashedToken = this.#hashToken(token);
-
         const verificationToken = await EmailVerificationToken.findOne({
             where: { token: hashedToken }
         });
@@ -175,19 +180,16 @@ class AuthService
         {
             throw new UnauthorizedError('This verification link is invalid or has expired');
         }
-
         const user = await User.findByPk(verificationToken.userId);
         if (!user)
         {
             throw new UnauthorizedError('This verification link is invalid or has expired');
         }
-
         if (user.isEmailVerified)
         {
             await verificationToken.destroy();
             return null;
         }
-
         await sequelize.transaction(async (t) =>
         {
             await user.update({ isEmailVerified: true }, { transaction: t });
@@ -233,14 +235,14 @@ class AuthService
         return null;
     }
 
-    async requestUpdationEmail(userId, { newEmail, password })
+    async requestUpdationEmail(userId, { email, password })
     {
         const user = await User.findByPk(userId);
         if (!userId)
         {
             throw new NotFoundError('User not found');
         }
-        if (newEmail === user.email)
+        if (email === user.email)
         {
             throw new BusinessRuleError('Please provide a different email than your current one');
         }
@@ -249,7 +251,7 @@ class AuthService
         {
             throw new UnauthorizedError('Invalid password');
         }
-        const existing = await User.findOne({ where: { email: newEmail } });
+        const existing = await User.findOne({ where: { email } });
         if (existing)
         {
             throw new ConflictError('An account with this email already exists');
@@ -259,13 +261,13 @@ class AuthService
         const expiresAt = new Date(Date.now() + EMAIL_CHANGE_TOKEN_EXPIRY_HOURS * 60 * 60 * 1000);
         await EmailUpdationToken.create({
             userId: user.id,
-            newEmail,
+            newEmail: email,
             token: this.#hashToken(rawToken),
             expiresAt
         });
         try
         {
-            await this.emailService.sendEmailUpdateConfirmation(user, newEmail, rawToken)
+            await this.emailService.sendEmailUpdateConfirmation(user, email, rawToken)
         } catch (error)
         {
             logger.error('Email change alert failed to send', { userId: user.id, error: error.message });
@@ -280,7 +282,7 @@ class AuthService
             throw new ValidationError('Token is required');
         }
         const hashedToken = this.#hashToken(token);
-        const updationToken = await EmailUpdationToken.findOne({ where: { token } });
+        const updationToken = await EmailUpdationToken.findOne({ where: { token: hashedToken } });
         if (!updationToken || updationToken.expiresAt < new Date())
         {
             throw new ValidationError('The Email updation link has been expires or is invalid');
@@ -298,9 +300,9 @@ class AuthService
                 },
                 {
                     where: {
-                        id: updationToken.userId,
-                        transaction: t
-                    }
+                        id: updationToken.userId
+                    },
+                    transaction: t
                 }
             );
             await updationToken.destroy({ transaction: t });

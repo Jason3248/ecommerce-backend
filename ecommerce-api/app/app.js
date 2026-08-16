@@ -12,7 +12,6 @@ app.use(cors());
 app.use(express.json({
     verify: (req, res, buf) =>
     {
-        // Store the raw buffer/string on the request object
         req.rawBody = buf.toString('utf8');
     }
 }));

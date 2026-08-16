@@ -87,21 +87,23 @@
     },
     {
         "method": "PATCH",
-        "path": "/api/users/me",
+        "path": "/api/users/me/update-profile",
         "controller": "user",
         "action": "updateProfile",
         "middlewares": [
             "authenticate"
-        ]
+        ],
+        "validate": "updateProfileSchema"
     },
-    {
-        "method": "PATCH",
-        "path": "/api/users/me/password",
+        {
+        "method": "POST",
+        "path": "/api/users/me/change-password",
         "controller": "user",
         "action": "changePassword",
         "middlewares": [
             "authenticate"
-        ]
+        ],
+        "validate": "changePasswordSchema"
     },
     {
         "method": "GET",
@@ -149,7 +151,8 @@
         "middlewares": [
             "authenticate",
             "authorize"
-        ]
+        ],
+        "validate": "createCategorySchema"
     },
     {
         "method": "PATCH",
@@ -159,7 +162,8 @@
         "middlewares": [
             "authenticate",
             "authorize"
-        ]
+        ],
+        "validate": "updateCategorySchema"
     },
     {
         "method": "DELETE",
@@ -415,7 +419,8 @@
         "middlewares": [
             "authenticate",
             "authorize"
-        ]
+        ],
+        "validate": "updateOrderStatusSchema"
     },
     {
         "method": "POST",
@@ -470,7 +475,8 @@
         "middlewares": [
             "authenticate",
             "authorize"
-        ]
+        ],
+        "validate": "createAdminSchema"
     },
     {
         "method": "GET",
@@ -541,6 +547,17 @@
             "authenticate",
             "authorize"
         ]
+    },
+    {
+        "method": "POST",
+        "path": "/api/admin/config",
+        "controller": "admin",
+        "action": "createOrUpdateConfig",
+        "middlewares": [
+            "authenticate",
+            "authorize"
+        ],
+        "validate": "createOrUpdateConfig"
     },
         {
         "method": "GET",

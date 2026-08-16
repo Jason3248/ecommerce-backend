@@ -31,6 +31,10 @@ const authenticate = async (req, res, next) =>
     {
         throw new ForbiddenError('This account has been blocked');
     }
+    if(user.deletedAt){
+        throw new ForbiddenError('Your account has been deleted. Please contact admin');
+    }
+
     req.user = {
         id: user.id,
         role: user.role

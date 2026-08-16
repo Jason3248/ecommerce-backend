@@ -13,4 +13,9 @@ const createAdminSchema = z.object({
     password: z.string().min(8)
 });
 
-module.exports = { updateConfigSchema, createAdminSchema };
+const createOrUpdateConfig = z.object({
+    "key": z.string().min(2),
+    "value": z.string().min(1)
+});
+
+module.exports = { updateConfigSchema, createAdminSchema, createOrUpdateConfig };

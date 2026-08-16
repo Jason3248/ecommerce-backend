@@ -1,6 +1,7 @@
 const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, '../../../../.env') });
 const nodemailer = require("nodemailer");
+const { email } = require("zod");
 
 class EmailService
 {
@@ -129,7 +130,7 @@ class EmailService
                 `Hi ${user.firstName},\n\n` +
                 `You requested to change the email address on your account to this address.\n\n` +
                 `Confirm this change using the link below:\n\n` +
-                `${confirmUrl}\n\n` +
+                `${emailUpdationUrl}\n\n` +
                 `This link will expire in 24 hours.\n\n` +
                 `If you did not request this, you can safely ignore this email — your account email will not change.`,
 
@@ -141,6 +142,7 @@ class EmailService
                 Confirm this change by clicking the button below.
             </p>
             <p>
+                <a
                     href="${emailUpdationUrl}"
                     style="
                         display: inline-block;
