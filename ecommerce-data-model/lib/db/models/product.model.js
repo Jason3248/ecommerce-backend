@@ -19,6 +19,7 @@ class Product extends Model
                 name: {
                     type: DataTypes.STRING(100),
                     allowNull: false,
+                    unique: true,
                     validate: {
                         len: [2, 100]
                     },
@@ -45,10 +46,6 @@ class Product extends Model
                     validate: {
                         min: 0
                     }
-                },
-                imageUrl: {
-                    type: DataTypes.STRING(500),
-                    allowNull: " true"
                 },
                 categoryId: {
                     type: DataTypes.UUID,

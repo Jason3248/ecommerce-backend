@@ -2,6 +2,7 @@
 const { z } = require("zod");
 
 const updateConfigSchema = z.object({
+    key: z.string().min(2),
     value: z.string().min(1).max(255)
 });
 

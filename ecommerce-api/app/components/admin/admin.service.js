@@ -2,7 +2,6 @@ const { NotFoundError, ConflictError, BusinessRuleError, ForbiddenError } = requ
 const { Op } = require("sequelize");
 const { User, SystemConfig } = require("ecommerce-data-model");
 const bcrypt = require("bcrypt");
-const { log } = require("winston");
 const logger = require("../../configs/logger");
 
 const DEFAULT_PAGE_SIZE = 20;
@@ -31,6 +30,7 @@ class AdminService
         if (pageSize > MAX_PAGE_SIZE) pageSize = MAX_PAGE_SIZE;
         return { page, pageSize, offset: (page - 1) * pageSize, limit: pageSize };
     }
+    
     #buildWhere(query)
     {
         const where = {};
@@ -55,9 +55,9 @@ class AdminService
 
     #toSafeUser(userInstance)
     {
-        const { id, name, email, role, isEmailVerified, isBlocked, createdAt } =
+        const { id, email, role, isEmailVerified } =
             userInstance.toJSON ? userInstance.toJSON() : userInstance;
-        return { id, name, email, role, isEmailVerified, isBlocked, createdAt };
+        return { id, email, role, isEmailVerified};
     }
 
     async listUsers(query)

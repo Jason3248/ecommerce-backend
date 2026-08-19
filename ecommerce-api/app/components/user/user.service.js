@@ -8,9 +8,9 @@ class UserService
 {
     #toSafeUser(userInstance)
     {
-        const { id, firstName, lastName,  email, role, isEmailVerified, isBlocked, createdAt } =
+        const { id, firstName, lastName,  email, role, isEmailVerified } =
             userInstance.toJSON ? userInstance.toJSON() : userInstance;
-        return { id, firstName, lastName,  email, role, isEmailVerified, isBlocked, createdAt };
+        return { id, firstName, lastName,  email, role, isEmailVerified };
     }
     async getProfile(userId)
     {

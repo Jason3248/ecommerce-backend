@@ -19,6 +19,17 @@ class Category extends Model{
                         this.setDataValue("name", value.trim());
                     }
                 },
+                code: {
+                    type: DataTypes.STRING(50),
+                    allowNull: false,
+                    unique: true,
+                    validate: {
+                        len: [1, 50]
+                    },
+                    set(value){
+                        this.setDataValue("code", value.trim());
+                    }
+                }
             },
             {
                 sequelize,

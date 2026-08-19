@@ -114,23 +114,54 @@ class ProductService
         return product;
     }
 
-    async createProduct({ sku, name, description, price, stockQuantity, categoryId })
+    async createProduct({ name, description, price, stockQuantity, categoryId })
     {
-        if(!sku){
-            throw new BusinessRuleError('A Product must have a unique sku compulsorily');
-        }
-        const existing = await Product.findOne({ where: { sku } });
-        if (existing)
-        {
-            throw new ConflictError('A product with this SKU already exists');
-        }
         if(!categoryId){
             throw new BusinessRuleError('Product must belong to some existing category');
         }
-        const createdProduct = await Product.create({
-            sku, name, description, price, stockQuantity, categoryId
+
+        return await sequelize.transaction(async (t) => {
+                const existing = await Product.findOne({ 
+                    where: { name }, 
+                    transaction: t 
+                });
+                
+                if (existing) {
+                    throw new ConflictError('A product with this name already exists');
+                }
+
+                const sku = await this.#generateNextSku(categoryId, t);
+                const createdProduct = await Product.create(
+                    { sku, name, description, price, stockQuantity, categoryId },
+                    { transaction: t }
+                );
+                return createdProduct;
+            });
+    }
+
+    async #generateNextSku(categoryId, transaction) {
+        const category = await Category.findByPk(categoryId, { transaction });
+        if (!category) {
+            throw new NotFoundError('Category not found');
+        }
+
+        const latestProduct = await Product.findOne({
+            where: { categoryId },
+            order: [['createdAt', 'DESC']],
+            paranoid: false,
+            transaction
         });
-        return createdProduct;
+
+        let nextNumber = 1;
+        if (latestProduct && latestProduct.sku) {
+            const parts = latestProduct.sku.split('-');
+            const lastSequence = parseInt(parts[parts.length - 1]);
+            if (!isNaN(lastSequence)) {
+                nextNumber = lastSequence + 1;
+            }
+        }
+        const formattedSequence = String(nextNumber).padStart(3, '0');
+        return `${category.code}_${formattedSequence}`;
     }
 
     async updateProduct(productId, { name, description, price, categoryId } = {})

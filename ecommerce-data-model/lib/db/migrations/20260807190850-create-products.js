@@ -17,7 +17,8 @@ module.exports = {
       },
       name: {
         type: Sequelize.STRING(100),
-        allowNull: false
+        allowNull: false,
+        unique: true
       },
       description: {
         type: Sequelize.TEXT,
@@ -31,10 +32,6 @@ module.exports = {
         type: Sequelize.INTEGER,
         defaultValue: 0,
         allowNull: false,
-      },
-      image_url: {
-        type: Sequelize.STRING(500),
-        allowNull: true
       },
       category_id: {
         type: Sequelize.UUID,

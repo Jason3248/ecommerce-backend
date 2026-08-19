@@ -7,8 +7,8 @@ const CANCELLABLE_STATES = ['PAYMENT_PENDING', 'PROCESSING', 'SHIPPED']
 
 const VALID_STATUS_TRANSITIONS = {
     PAYMENT_PENDING: ['PAID', 'PAYMENT_FAILED', 'CANCELLED'],
-    PAID: ['PROCESSING', 'CANCELLED'],
-    PROCESSING: ['SHIPPED', 'CANCELLED'],
+    PAID: ['PROCESSING'],
+    PROCESSING: ['SHIPPED'],
     SHIPPED: ['DELIVERED'],
     DELIVERED: [],
     CANCELLED: [],
@@ -110,7 +110,6 @@ class OrderService
             },
                 { transaction: t }
             );
-
             await OrderItem.bulkCreate(
                 orderItemsData.map(item =>
                 {

@@ -1,5 +1,5 @@
 const multer = require("multer");
-const { validationError, ValidationError } = require("../lib/errors");
+const { ValidationError } = require("../lib/errors");
 const { log } = require("winston");
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png'];

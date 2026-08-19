@@ -24,9 +24,9 @@ class AuthService
 
     #toSafeUser(userInstance)
     {
-        const { id, name, email, role, isEmailVerified, isBlocked, createdAt } =
+        const { id, email, role, isEmailVerified } =
             userInstance.toJSON ? userInstance.toJSON() : userInstance;
-        return { id, name, email, role, isEmailVerified, isBlocked, createdAt };
+        return { id, email, role, isEmailVerified};
     }
 
     async register({ firstName, lastName, email, password })
@@ -102,8 +102,7 @@ class AuthService
         );
 
         return {
-            token,
-            user: this.#toSafeUser(user)
+            token
         };
     }
 
@@ -137,7 +136,7 @@ class AuthService
             console.error(error);
             logger.error('Forgot password email failed to send', { userId: user.id, error: error.message });
         }
-        return rawToken;
+        return null;
     }
 
     async resetPassword({ token, password })
